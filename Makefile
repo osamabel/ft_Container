@@ -6,7 +6,7 @@
 #    By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/11/05 11:37:18 by obelkhad          #+#    #+#              #
-#    Updated: 2022/11/05 12:03:14 by obelkhad         ###   ########.fr        #
+#    Updated: 2022/11/18 11:35:21 by obelkhad         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,7 +21,8 @@ all: $(NAME)
 
 $(NAME): $(OBJ) 
 	@c++ $(CPPFLAG) $(OBJ) -o $(NAME)
-%.o:%.cpp ft_vector/ft_vector.hpp
+
+%.o:%.cpp Containers/ft_vector.hpp
 	@C++ $(CFLAGS) -o $@ -c $<
 
 clean:
