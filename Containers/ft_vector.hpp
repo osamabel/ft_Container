@@ -6,27 +6,28 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/03 08:52:01 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/11/18 19:46:13 by obelkhad         ###   ########.fr       */
+/*   Updated: 2022/11/19 12:20:52 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef FT_VECTOR_H
 #define FT_VECTOR_H
 #include <memory>
+#include <iostream>
 
 namespace ft
 {
 
-	//+--------------------------------------------------------------------------+//
-	//|                                  Vector                                  |//
-	//+--------------------------------------------------------------------------+//
+	//+----------------------------------------------------------------------+//
+	//|                               Vector                                 |//
+	//+----------------------------------------------------------------------+//
 	template<class _Tp, class _Allocator = std::allocator<_Tp> > 
 
 	class vector
 	{
-	//+--------------------------------------------------------------------------+//
-	//|                             [ Member types ]                             |//
-	//+--------------------------------------------------------------------------+//
+		//+------------------------------------------------------------------+//
+		//|                         [ Member types ]                         |//
+		//+------------------------------------------------------------------+//
 
 	public:
 
@@ -44,32 +45,31 @@ namespace ft
 		pointer                                         __end_cap_; //end of the allocated memory
 		allocator_type									__alloc;
 
-
-	//+--------------------------------------------------------------------------+//
-	//|                              [ Exceptions ]                              |//
-	//+--------------------------------------------------------------------------+//
-		void __throw_length_error()
+		//+------------------------------------------------------------------+//
+		//|                           [ Exceptions ]                         |//
+		//+------------------------------------------------------------------+//
+		void __throw_length_error() const
 		{
 			throw std::length_error("vector");
 		}
-		void __throw_out_of_range()
+		void __throw_out_of_range() const
 		{
 			throw std::out_of_range("vector");
 		}
-	//+--------------------------------------------------------------------------+//
-	//|                              [ Constracors ]                             |//
-	//+--------------------------------------------------------------------------+//
 
+		//+------------------------------------------------------------------+//
+		//|                          [ Constracors ]                         |//
+		//+------------------------------------------------------------------+//
 		/* Empty container constructor (default constructor) */
 		explicit vector (const allocator_type& alloc = allocator_type())
-			:	__begin_(nullptr), __end_(nullptr), __end_cap_(nullptr), __alloc(alloc)
+		:	__begin_(nullptr), __end_(nullptr), __end_cap_(nullptr), __alloc(alloc)
 		{
 			std::cout << "Empty container\n";
 		}
 		
 		/* Fill constructor */
 		explicit vector (size_type __n, const value_type& __val = value_type(), const allocator_type& alloc = allocator_type())
-			:	__begin_(nullptr), __end_(nullptr), __end_cap_(nullptr), __alloc(alloc)
+		:	__begin_(nullptr), __end_(nullptr), __end_cap_(nullptr), __alloc(alloc)
 		{
 			std::cout << "Fill container\n";
 			if (__n > 0)
@@ -143,9 +143,9 @@ namespace ft
 			/* deallocate */
 			__alloc.deallocate(__begin_, capacity());
 		}
-	//+--------------------------------------------------------------------------+//
-	//|    	                          [ Capacity ]                             	 |//
-	//+--------------------------------------------------------------------------+//
+		//+------------------------------------------------------------------+//
+		//|    	                       [ Capacity ]                     	 |//
+		//+------------------------------------------------------------------+//
 		size_type size() const
 		{ return static_cast<size_type>(__end_ - __begin_); }
 
@@ -174,10 +174,27 @@ namespace ft
 			}	//~__split_buffer() = old vector destroy
 		}
 
+		void resize (size_type __n, const_reference __val = value_type()) // exemple value_type() = int() = 0
+		{
+			size_type __current_size = size();
+			if (__current_size < __n)
+			{
+				/* Append */
+				__append(__n - __current_size, __val);
+			}
+			else if (__current_size > __n)
+			{
+				/* Destruct At End */
+				while (__end_ != __begin_ + __n)
+					__alloc.destroy(--__end_);
+			}
+		}
+
+
 	private:
-	//+----------------------------------------------------------------------+//
-	//|                              Tools                                   |//
-	//+----------------------------------------------------------------------+//
+		//+------------------------------------------------------------------+//
+		//|                             [ Tools ]                            |//
+		//+------------------------------------------------------------------+//
 		class __split_buffer
 		{
 		public:
@@ -191,23 +208,65 @@ namespace ft
 			}
 			~__split_buffer()
 			{
-				std::cout << "old mcha\n";
+				std::cout << "old vector destrected \n";
 			}
 		};
 
-		void __construct_backward_and_swap_(__split_buffer &__v)
-		{
-			/* Construct Backward */
-			pointer __e = __end_;
-			while (__e-- != __begin_)
-				__v.vec.__alloc.construct(--__v.vec.__begin_, *__e);
-
-			/* Swap */
-			std::swap(__begin_, __v.vec.__begin_);
-			std::swap(__end_, __v.vec.__end_);
-			std::swap(__end_cap_, __v.vec.__end_cap_);
-		}
-
+		void __construct_backward_and_swap_(__split_buffer &__v);
+		void __append(size_type __n, const_reference __val);
+		size_type __recommend(size_type __new_size) const;
+		void __construct_at_end(size_type _n, const_reference _val);
 	};
+
+	template<class _Tp, class _Allocator>
+	void vector<_Tp, _Allocator>::__construct_backward_and_swap_(__split_buffer &__v)
+	{
+		/* Construct Backward */
+		pointer __e = __end_;
+		while (__e-- != __begin_)
+			__v.vec.__alloc.construct(--__v.vec.__begin_, *__e);
+
+		/* Swap */
+		std::swap(__begin_, __v.vec.__begin_);
+		std::swap(__end_, __v.vec.__end_);
+		std::swap(__end_cap_, __v.vec.__end_cap_);
+	}
+
+	template<class _Tp, class _Allocator>
+	void 
+	vector<_Tp, _Allocator>::__append(size_type __n, const_reference __val)
+	{
+		if (static_cast<size_type>(__end_cap_ - __end_) >= __n)
+		{
+			/* Constraction at end */
+			__construct_at_end(__n, __val);				// add __val until reach to the "new size"
+		}
+		else
+		{
+			__split_buffer __v(__recommend(size() + __n), size(), __alloc);
+			__construct_backward_and_swap_(__v);		//__begin_, __end_, __end_cap_ now point on the new vector
+			__construct_at_end(__n, __val);				// add ( __val ) until reach to the "new size"
+		}
+	}
+
+ 	template<class _Tp, class _Allocator>
+	typename vector<_Tp, _Allocator>::size_type 
+	vector<_Tp, _Allocator>::__recommend(size_type __new_size) const
+	{
+		const size_type __ms = max_size();
+		if (__new_size > __ms)
+			__throw_length_error();
+		const size_type __cap = capacity();
+		if (__cap >= __ms / 2)
+			return __ms;
+		return std::max<size_type>(2*__cap, __new_size);
+	}
+
+	template<class _Tp, class _Allocator>
+	void vector<_Tp, _Allocator>::__construct_at_end(size_type __n, const_reference __val)
+	{
+		for (; __n; --__n, ++__end_)
+			__alloc.construct(__end_, __val);
+	}
 }	//namespace ft
 #endif
