@@ -6,7 +6,7 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/03 08:52:01 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/11/19 12:20:52 by obelkhad         ###   ########.fr       */
+/*   Updated: 2022/11/20 12:57:27 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -185,11 +185,43 @@ namespace ft
 			else if (__current_size > __n)
 			{
 				/* Destruct At End */
-				while (__end_ != __begin_ + __n)
-					__alloc.destroy(--__end_);
+				__destruct_at_end(__begin_);
 			}
 		}
 
+		//+------------------------------------------------------------------+//
+		//|    	                       [ Modifiers ]						  |//
+		//+------------------------------------------------------------------+//
+		void clear()
+		{ __destruct_at_end(__begin_); }
+
+		iterator insert (const_iterator __position, const_reference __val)
+		{
+			pointer __p = __begin_ + (__position - begin());
+			if (__end_ < __end_cap_)
+			{
+				if (__p == __end_)
+					__alloc.construct(__end_++, __val);
+				else
+				{
+					__shift_right(__p, __end_, __p + 1);
+					const_pointer __pinter_like_ = &__val;
+					if (__p <= __pinter_like_ && __pinter_like_ < __end_) // check if __val is a reference to some element of this vector
+						++__pinter_like_;
+					*__p = *__pinter_like_;
+				}
+			}
+			else
+			{
+				__split_buffer __v(__recommend(size() + 1), __p - __begin_, __alloc);
+				__v.push_back(__val);
+				__p = __construct_backward_and_swap_(__v, __p);
+			}
+			return __make_iter(__p);
+		}
+
+    	void insert (const_iterator position, size_type n, const value_type& val);
+		template <class InputIterator>    void insert (iterator position, InputIterator first, InputIterator last);
 
 	private:
 		//+------------------------------------------------------------------+//
@@ -212,12 +244,39 @@ namespace ft
 			}
 		};
 
+		void __construct_backward_and_swap_(__split_buffer &__v, pointer __p);
 		void __construct_backward_and_swap_(__split_buffer &__v);
 		void __append(size_type __n, const_reference __val);
 		size_type __recommend(size_type __new_size) const;
 		void __construct_at_end(size_type _n, const_reference _val);
-	};
+		inline void __destruct_at_end(pointer __new_last);
+		void __shift_right(pointer __pos, pointer __end_holder);
+	};	// -------------------------------------------------   [ VECTOR ] ----//
 
+
+
+
+
+
+	template<class _Tp, class _Allocator>
+	void vector<_Tp, _Allocator>::__construct_backward_and_swap_(__split_buffer &__v, pointer __p)
+	{
+		/* Construct Forward */
+		pointer __ptr = __p;
+		while (__ptr != __end_)
+			__v.vec.__alloc.construct(__v.vec.__end_++, *__ptr++);
+
+		/* Construct Backward */
+		__ptr = __p;
+		while (__ptr != __begin_)
+			__v.vec.__alloc.construct(--__v.vec.__begin_, --*__ptr);
+
+		/* Swap */
+		std::swap(__begin_, __v.vec.__begin_);
+		std::swap(__end_, __v.vec.__end_);
+		std::swap(__end_cap_, __v.vec.__end_cap_);
+		return (__begin_);
+	}
 	template<class _Tp, class _Allocator>
 	void vector<_Tp, _Allocator>::__construct_backward_and_swap_(__split_buffer &__v)
 	{
@@ -268,5 +327,24 @@ namespace ft
 		for (; __n; --__n, ++__end_)
 			__alloc.construct(__end_, __val);
 	}
+
+	template <class _Tp, class _Allocator>
+	inline void
+	vector<_Tp, _Allocator>::__destruct_at_end(pointer __new_last)
+	{
+		while (__new_last != __end_)
+			__alloc.destroy(--__end_);
+	}
+
+	template <class _Tp, class _Allocator>
+	void vector<_Tp, _Allocator>::__shift_right(pointer __pos, pointer __end_holder)
+    {
+        pointer __old_last = __end_;
+        difference_type _n = __end_ - (__pos + 1);
+
+        for (pointer __p = __pos + _n; __p < __end_holder; ++__p, ++__end_)
+            __alloc.construct( __end_, *__p);
+        std::__move_backward(__pos, __pos + _n, __old_last);
+    }
 }	//namespace ft
 #endif
