@@ -6,7 +6,7 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/03 08:52:01 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/11/20 12:57:27 by obelkhad         ###   ########.fr       */
+/*   Updated: 2022/11/20 19:16:15 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #define FT_VECTOR_H
 #include <memory>
 #include <iostream>
+#include <algorithm>
 
 namespace ft
 {
@@ -29,8 +30,7 @@ namespace ft
 		//|                         [ Member types ]                         |//
 		//+------------------------------------------------------------------+//
 
-	public:
-
+	private:
 		typedef _Tp     	                                value_type;
 		typedef	_Allocator									allocator_type;
 		typedef typename allocator_type::pointer            pointer;            //typdef *_Tp pointer   
@@ -56,7 +56,7 @@ namespace ft
 		{
 			throw std::out_of_range("vector");
 		}
-
+	public:
 		//+------------------------------------------------------------------+//
 		//|                          [ Constracors ]                         |//
 		//+------------------------------------------------------------------+//
@@ -217,10 +217,44 @@ namespace ft
 				__v.push_back(__val);
 				__p = __construct_backward_and_swap_(__v, __p);
 			}
-			return __make_iter(__p);
+			// return __make_iter(__p);
 		}
 
-    	void insert (const_iterator position, size_type n, const value_type& val);
+		insert(const_iterator __position, size_type __n, const_reference __val)
+		{
+			pointer __p = this->__begin_ + (__position - begin());
+			if (__n > 0)
+			{
+				if (__n <= static_cast<size_type>(__end_cap_ - __end_))
+				{
+					size_type __old_n = __n;
+					pointer __old_last = __end_;
+					if (__n > static_cast<size_type>(__end_ - __p))
+					{
+						size_type __diff = __n - (__end_ - __p);
+						__construct_at_end(__diff, __val);
+						__n -= __diff;
+					}
+					if (__n > 0)
+					{
+						__move_range(__p, __old_last, __p + __old_n);
+						const_pointer __pinter_like_ = &__val;
+						if (__p <= __pinter_like_ && __pinter_like_ < __end_)
+							__pinter_like_ += __old_n;
+						std::fill_n(__p, __n, *__pinter_like_);
+					}
+				}
+				else
+				{
+					__split_buffer __v(__recommend(size() + __n), __p - __begin_, __alloc);
+					__v.__construct_at_end(__n, __val);
+					__p = __construct_backward_and_swap_(__v, __p);
+				}
+			}
+			// return __make_iter(__p);
+		}
+
+
 		template <class InputIterator>    void insert (iterator position, InputIterator first, InputIterator last);
 
 	private:
@@ -251,6 +285,7 @@ namespace ft
 		void __construct_at_end(size_type _n, const_reference _val);
 		inline void __destruct_at_end(pointer __new_last);
 		void __shift_right(pointer __pos, pointer __end_holder);
+		inline void move_backward(pointer _first, pointer _last, pointer _result);
 	};	// -------------------------------------------------   [ VECTOR ] ----//
 
 
@@ -344,7 +379,15 @@ namespace ft
 
         for (pointer __p = __pos + _n; __p < __end_holder; ++__p, ++__end_)
             __alloc.construct( __end_, *__p);
-        std::__move_backward(__pos, __pos + _n, __old_last);
+        ft::__move_backward(__pos, __pos + _n, __old_last);
     }
+	
+	template<class _Tp, class _Allocator>
+	inline void vector<_Tp, _Allocator>::move_backward(pointer _first, pointer _last, pointer _result)
+    {
+        while (_first != _last)
+            *--_result = *--_last;
+    }
+
 }	//namespace ft
 #endif
