@@ -1,50 +1,53 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   random_access_iterator.hpp                         :+:      :+:    :+:   */
+/*   iterator.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/06 17:43:58 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/11/15 13:56:07 by obelkhad         ###   ########.fr       */
+/*   Updated: 2022/11/22 20:43:16 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef RANDOM_ACCESS_ITERATOR_HPP
-#define RANDOM_ACCESS_ITERATOR_HPP
+#ifndef ITERATOR_HPP
+#define ITERATOR_HPP
 #include "../traits/iterator_traits.hpp"
 
 namespace ft
 {
-	template <class _Iter>
+	template <class Iter>
 	class base_Iterator
 	{
 	public:
-		typedef _Iter                                               iterator_type;
-		typedef typename ft::iterator_traits<T>::difference_type	difference_type;
-		typedef typename ft::iterator_traits<T>::value_type			value_type;
-		typedef typename ft::iterator_traits<T>::pointer			pointer;
-		typedef typename ft::iterator_traits<T>::reference			reference;
-		typedef typename ft::iterator_traits<T>::iterator_category	iterator_category;		
-	private:
-    	iterator_type __i;
-	public:
-		// geter()
+		typedef Iter                                              				iterator_type;
+		typedef typename iterator_traits<iterator_type>::difference_type		difference_type;
+		typedef typename iterator_traits<iterator_type>::value_type				value_type;
+		typedef typename iterator_traits<iterator_type>::pointer				pointer;
+		typedef value_type														reference;
+		typedef value_type&														const_reference;
+		typedef std::random_access_iterator_tag									iterator_category;
+
+
+		//+-------------------------------------------------------------------+
+		//|					          base()     							  |
+		//+-------------------------------------------------------------------+
 		iterator_type base() const	{ return (this->__i); }
 
 		//+-------------------------------------------------------------------+
 		//|					          Constructors							  |
 		//+-------------------------------------------------------------------+
-
 		// default-constructible
 		base_Iterator() : __i() { }
 
 		// copy-constructible,
- 		// template <class _Up> base_Iterator(const base_Iterator<_Up> &__u) : __i(__u.base()) { }
-		base_Iterator(const base_Iterator &__x): __i(__x.base()) { }
+ 		template <class _Up> base_Iterator(const base_Iterator<_Up> &__u) : __i(__u.base()) { }
+		base_Iterator(const base_Iterator &__x): __i(__x.base())
+		{}
 
 		// parameterized-constructible,
-		base_Iterator(const iterator_type &__x): __i(__x) { }
+		base_Iterator(const iterator_type &__x): __i(__x) 
+		{}
 
 		// copy-assignable 
 		base_Iterator &operator = (const base_Iterator &__x)
@@ -56,13 +59,11 @@ namespace ft
 
 		// destructible
 		~base_Iterator() { }
-	
-	private:
 
 		//+-------------------------------------------------------------------+
 		//|					    Input::Dereferenceable	 		  	  	      |
 		//+-------------------------------------------------------------------+
-		reference operator * () const { return *__i; }
+		// reference operator * () const { return *__i; }
 
 		pointer  operator -> () const { return __i; }   //return (pointer)_VSTD::addressof(*__i);
 
@@ -109,12 +110,21 @@ namespace ft
         {
 			return this->__i + __n;
 		}
-
+		
+		difference_type operator + (const base_Iterator &iter)
+		{
+			return (base() + iter.base());
+		}
+		
 		base_Iterator  operator - (difference_type __n) const
         {
 			return this->__i - __n;
 		}
-
+		
+		difference_type operator - (const base_Iterator &iter)
+		{
+			return (base() - iter.base());
+		}
 		//+-------------------------------------------------------------------+
 		//|					          Comparisons							  |
 		//+-------------------------------------------------------------------+
@@ -175,12 +185,13 @@ namespace ft
 		//+-------------------------------------------------------------------+
 		//|					          Operator []							  |
 		//+-------------------------------------------------------------------+
-		reference operator [] (difference_type __n) const
-		{
-			return __i[__n];
-		}
+		// reference operator [] (difference_type __n) const
+		// {
+		// 	return __i[__n];
+		// }
+	private:
+    	iterator_type __i;
 	};
 }	//namespace ft
-
 
 #endif
