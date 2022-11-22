@@ -6,7 +6,7 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/03 08:52:01 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/11/20 19:16:15 by obelkhad         ###   ########.fr       */
+/*   Updated: 2022/11/22 12:48:00 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,26 +90,42 @@ namespace ft
 			}	
 		}
 
-		/* Range constructor */
-		// template <class InputIterator>
-		// vector (InputIterator first, InputIterator last, const allocator_type &alloc = allocator_type(),
-		// 	typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type* = 0)
-		// :	__begin_(nullptr), __end_(nullptr), __end_cap_(nullptr), __alloc(alloc)
-		// {
-		// 	std::cout << "range container\n";
-		// 	/* Vector Allocation with size of (__n), and assign it to __begin_ */
-		// 	size_type __n = static_cast<size_type>(std::distance(first, last));
-		// 	if (__n > 0)
-		// 	{
-		// 		__begin_ 			= __alloc.allocate(__n);
-		// 		__end_ 				= __begin_;
-		// 		__end_cap_			= __begin_ + __n;
-		// 	}
 
-		// 	/* Constraction at end */
-		// 	for (size_type i = 0; i < __n ; i++)
-		// 		__alloc.construct(__end_++, *first++);
-		// }
+template <class _Tp, _Tp __v>
+struct  integral_constant
+{
+    static const _Tp      value = __v;
+    typedef _Tp               value_type;
+    typedef integral_constant type;
+    operator value_type() const 
+	{return value;}
+    constexpr value_type operator ()() const {return value;}
+
+};
+
+// vector(
+// 		_InputIterator __first,
+// 		_InputIterator __last,
+// 		const allocator_type& __a,
+// 		typename enable_if<
+// 			__is_input_iterator<_InputIterator>::value
+// 			&&
+// 			!__is_forward_iterator<_InputIterator>::value 
+// 			&&
+// 			is_constructible<value_type,typename iterator_traits<_InputIterator>::reference>::value
+// 		>::type*
+// 		)
+
+		/* Range constructor */
+		template <class InputIterator>
+		vector (InputIterator first, InputIterator last, const allocator_type &alloc = allocator_type(),
+			typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type* = 0)
+		:	__begin_(nullptr), __end_(nullptr), __end_cap_(nullptr), __alloc(alloc)
+		{
+			std::cout << "range container\n";
+			for (; first != last; ++first)
+        		push_back(*first);
+		}
 
 		/* Copy constructor */
 		vector(const vector &__x)
@@ -192,9 +208,11 @@ namespace ft
 		//+------------------------------------------------------------------+//
 		//|    	                       [ Modifiers ]						  |//
 		//+------------------------------------------------------------------+//
+		//------------------------------------------------------------ [ clear ]
 		void clear()
 		{ __destruct_at_end(__begin_); }
 
+		//----------------------------------------------------------- [ insert ]
 		iterator insert (const_iterator __position, const_reference __val)
 		{
 			pointer __p = __begin_ + (__position - begin());
@@ -205,10 +223,11 @@ namespace ft
 				else
 				{
 					__shift_right(__p, __end_, __p + 1);
-					const_pointer __pinter_like_ = &__val;
-					if (__p <= __pinter_like_ && __pinter_like_ < __end_) // check if __val is a reference to some element of this vector
-						++__pinter_like_;
-					*__p = *__pinter_like_;
+					const_pointer __pointer_ = &__val;
+					// check if __val is a reference to some element of this vector
+					if (__p <= __pointer_ && __pointer_ < __end_)
+						++__pointer_;
+					*__p = *__pointer_;
 				}
 			}
 			else
@@ -238,10 +257,10 @@ namespace ft
 					if (__n > 0)
 					{
 						__move_range(__p, __old_last, __p + __old_n);
-						const_pointer __pinter_like_ = &__val;
-						if (__p <= __pinter_like_ && __pinter_like_ < __end_)
-							__pinter_like_ += __old_n;
-						std::fill_n(__p, __n, *__pinter_like_);
+						const_pointer __pointer_ = &__val;
+						if (__p <= __pointer_ && __pointer_ < __end_)
+							__pointer_ += __old_n;
+						std::fill_n(__p, __n, *__pointer_);
 					}
 				}
 				else
@@ -254,8 +273,37 @@ namespace ft
 			// return __make_iter(__p);
 		}
 
+		template <class InputIterator>
+		void insert (iterator position, InputIterator first, InputIterator last)
+		{
+			
+		}
 
-		template <class InputIterator>    void insert (iterator position, InputIterator first, InputIterator last);
+		//------------------------------------------------------------ [ erase ]
+		iterator erase(iterator __position)
+		{
+			pointer __p = __begin_ + (__position - begin());
+			pointer __first = __p + 1;
+			pointer __last = __end_;
+			for (; __first != __last; ++__first, ++__p)
+				*__p = *__first;
+			__alloc.destroy(--__end_);
+			return __position;
+		}
+
+		iterator erase(iterator __first, iterator __last)
+		{
+			pointer __f = __begin_ + (__first - begin());
+			pointer __l = __begin_ + (__last - begin());
+			if (__f != __l)
+			{
+				for (;__l != __end_; __l++, __f++)
+					*__f = *__l;
+				while (__end_ != __f)
+					__alloc.destroy(--__end_);
+			}
+			return __first;
+		}
 
 	private:
 		//+------------------------------------------------------------------+//
