@@ -6,7 +6,7 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/03 08:52:01 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/11/23 10:35:13 by obelkhad         ###   ########.fr       */
+/*   Updated: 2022/11/23 15:34:02 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -340,6 +340,13 @@ namespace ft
 				__construct_backward_and_swap_(__v);
 			}
 		}
+
+		//-------------------------------------------------------- [ pop_back ]
+		void pop_back()
+		{
+			if (!empty())
+				__alloc.destroy(--__end_);
+		}
 	private:
 		//+------------------------------------------------------------------+//
 		//|                             [ Tools ]                            |//
@@ -351,7 +358,7 @@ namespace ft
 			__split_buffer(size_type __cap, size_type __size, allocator_type &alloc) : vec(alloc)
 			{
 				pointer __new;
-				__new = __cap != 0 ? alloc.allocate(__cap) : nullptr;
+				__new = __cap != 0 ? vec.__alloc.allocate(__cap) : nullptr;
 				vec.__begin_ = vec.__end_ = __new + __size;
 				vec.__end_cap_ = __new + __cap;
 			}
@@ -387,7 +394,7 @@ namespace ft
 		/* Construct Backward */
 		__ptr = __p;
 		while (__ptr != __begin_)
-			__v.vec.__alloc.construct(--__v.vec.__begin_, --*__ptr);
+			__v.vec.__alloc.construct(--__v.vec.__begin_, *__ptr--);
 
 		/* Swap */
 		std::swap(__begin_, __v.vec.__begin_);
@@ -447,8 +454,7 @@ namespace ft
 	}
 
 	template <class _Tp, class _Allocator>
-	inline void
-	vector<_Tp, _Allocator>::__destruct_at_end(pointer __new_last)
+	inline void vector<_Tp, _Allocator>::__destruct_at_end(pointer __new_last)
 	{
 		while (__new_last != __end_)
 			__alloc.destroy(--__end_);
