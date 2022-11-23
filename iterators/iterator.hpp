@@ -6,7 +6,7 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/06 17:43:58 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/11/22 20:43:16 by obelkhad         ###   ########.fr       */
+/*   Updated: 2022/11/23 10:18:45 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,13 +21,11 @@ namespace ft
 	{
 	public:
 		typedef Iter                                              				iterator_type;
+		typedef typename iterator_traits<iterator_type>::iterator_category		iterator_category;
 		typedef typename iterator_traits<iterator_type>::difference_type		difference_type;
 		typedef typename iterator_traits<iterator_type>::value_type				value_type;
 		typedef typename iterator_traits<iterator_type>::pointer				pointer;
-		typedef value_type														reference;
-		typedef value_type&														const_reference;
-		typedef std::random_access_iterator_tag									iterator_category;
-
+		typedef typename iterator_traits<iterator_type>::reference				reference;
 
 		//+-------------------------------------------------------------------+
 		//|					          base()     							  |
@@ -63,9 +61,10 @@ namespace ft
 		//+-------------------------------------------------------------------+
 		//|					    Input::Dereferenceable	 		  	  	      |
 		//+-------------------------------------------------------------------+
-		// reference operator * () const { return *__i; }
+		reference operator * () const { return *__i; }
 
-		pointer  operator -> () const { return __i; }   //return (pointer)_VSTD::addressof(*__i);
+		// pointer  operator -> () const { return __i; }
+		pointer  operator -> () const { return std::addressof(operator*()); }   //return (pointer)_VSTD::addressof(*__i);
 
 		//+-------------------------------------------------------------------+
 		//|					         Incrementation						  	  |
@@ -131,37 +130,31 @@ namespace ft
 		//[inline] keyword simply include the funtion body in where it called, 
 		//to avoid multipl jmp form main to this function for exmple.
 
-		//==
 		inline bool operator == (const base_Iterator &__x)
 		{
 			return this->base() == __x.base();
 		}
 
-		//!=
 		inline bool operator != (const base_Iterator &__x)
 		{
 			return this->base() != __x.base();
 		}
 
-		// <
 		inline bool operator < (const base_Iterator &__x)
 		{
 			return this->base() < __x.base();
 		}
 	
-		// <=
 		inline bool operator <= (const base_Iterator &__x)
 		{
 			return this->base() <= __x.base();
 		}
 
-		// >
 		inline bool operator > (const base_Iterator &__x)
 		{
 			return this->base() > __x.base();
 		}
 		
-		// >=
 		inline bool operator >= (const base_Iterator &__x)
 		{
 			return this->base() >= __x.base();
@@ -185,13 +178,175 @@ namespace ft
 		//+-------------------------------------------------------------------+
 		//|					          Operator []							  |
 		//+-------------------------------------------------------------------+
-		// reference operator [] (difference_type __n) const
-		// {
-		// 	return __i[__n];
-		// }
+		reference operator [] (difference_type __n) const
+		{
+			return __i[__n];
+		}
 	private:
     	iterator_type __i;
 	};
+
+
+	template <class Iter>
+	class reverse_iterator
+	{
+		typedef Iter                                              				iterator_type;
+		typedef typename iterator_traits<iterator_type>::difference_type		difference_type;
+		typedef typename iterator_traits<iterator_type>::value_type				value_type;
+		typedef typename iterator_traits<iterator_type>::pointer				pointer;
+		typedef typename iterator_traits<iterator_type>::reference				reference;
+
+	public:
+		//+-------------------------------------------------------------------+
+		//|					          Constructors							  |
+		//+-------------------------------------------------------------------+
+		reverse_iterator() :  current() {}
+		explicit reverse_iterator(iterator_type __x) : current(__x) {}
+		// template <class _Up> reverse_iterator(const reverse_iterator<_Up>& __u) : __t(__u.base()), current(__u.base()) {}
+		// template <class _Up> reverse_iterator& operator=(const reverse_iterator<_Up>& __u)
+		// {
+		// 	__t = current = __u.base();
+		// 	return *this;
+		// }
+		//+-------------------------------------------------------------------+
+		//|					          base()     							  |
+		//+-------------------------------------------------------------------+
+		iterator_type base() const { return current; }
+		
+		//+-------------------------------------------------------------------+
+		//|					    Input::Dereferenceable	 		  	  	      |
+		//+-------------------------------------------------------------------+
+		reference operator * () const 
+		{
+			iterator_type __tmp = current;
+			return *--__tmp;
+		}
+		pointer  operator -> () const 
+		{
+			return _VSTD::addressof(operator*());
+		}
+		
+		//+-------------------------------------------------------------------+
+		//|					         Incrementation						  	  |
+		//+-------------------------------------------------------------------+
+		reverse_iterator &operator ++ ()
+		{
+			--current;
+			return *this;
+		}
+		reverse_iterator  operator ++ (int) 
+		{
+			reverse_iterator __tmp(*this);
+			--current; return __tmp;
+		}
+
+		//+-------------------------------------------------------------------+
+		//|					         Decrementation						  	  |
+		//+-------------------------------------------------------------------+
+		reverse_iterator &operator -- ()
+		{
+			++current;
+			return *this;
+		}
+		reverse_iterator  operator -- (int)
+		{
+			reverse_iterator __tmp(*this);
+			++current;
+			return __tmp;
+		}
+
+		//+-------------------------------------------------------------------+
+		//|					          Arithmetic						  	  |
+		//+-------------------------------------------------------------------+
+		reverse_iterator  operator + (difference_type __n) const
+		{
+			return reverse_iterator(current - __n);
+		}
+			
+		reverse_iterator  operator - (difference_type __n) const
+		{
+			return reverse_iterator(current + __n);
+		}
+
+
+		//+-------------------------------------------------------------------+
+		//|				     Compound Assignment Operators			 		  |
+		//+-------------------------------------------------------------------+
+		reverse_iterator &operator += (difference_type __n)
+		{
+			current -= __n;
+			return *this;
+		}
+		
+		reverse_iterator &operator -= (difference_type __n)
+		{
+			current += __n;
+			return *this;
+		}
+
+		//+-------------------------------------------------------------------+
+		//|					          Operator []							  |
+		//+-------------------------------------------------------------------+
+		reference operator [] (difference_type __n) const
+		{
+			return *(*this + __n);
+		}
+	private:
+    	Iter current;
+	};
+
+
+//-------------------------------------------------------[Non-member functions ]
+
+/*----------------------------------------------------------------------------*/
+/*                      Compares the underlying iterators                     */
+/*----------------------------------------------------------------------------*/
+template <class Iter1, class Iter2>
+inline bool operator == (const reverse_iterator<Iter1> &__x, const reverse_iterator<Iter2> &__y)
+{return __x.base() == __y.base();}
+
+
+template <class Iter1, class Iter2>
+inline bool operator != (const reverse_iterator<Iter1> &__x, const reverse_iterator<Iter2> &__y)
+{return __x.base() != __y.base();}
+
+
+template <class Iter1, class Iter2>
+inline bool operator < (const reverse_iterator<Iter1> &__x, const reverse_iterator<Iter2> &__y)
+{return __x.base() > __y.base();}
+
+
+template <class Iter1, class Iter2>
+inline bool operator <= (const reverse_iterator<Iter1> &__x, const reverse_iterator<Iter2> &__y)
+{return __x.base() >= __y.base();}
+
+
+template <class Iter1, class Iter2>
+inline bool operator > (const reverse_iterator<Iter1> &__x, const reverse_iterator<Iter2> &__y)
+{return __x.base() < __y.base();}
+
+
+template <class Iter1, class Iter2>
+inline bool operator >= (const reverse_iterator<Iter1> &__x, const reverse_iterator<Iter2> &__y)
+{return __x.base() <= __y.base();}
+
+/*----------------------------------------------------------------------------*/
+/*                      operator-(std::reverse_iterator)                      */
+/*----------------------------------------------------------------------------*/
+template <class _Iter1, class _Iter2>
+inline typename reverse_iterator<_Iter1>::difference_type
+operator - (const reverse_iterator<_Iter1>& __x, const reverse_iterator<_Iter2>& __y)
+{
+    return __y.base() - __x.base();
+}
+
+/*----------------------------------------------------------------------------*/
+/*                      operator+(std::reverse_iterator)                      */
+/*----------------------------------------------------------------------------*/
+template <class Iter>
+inline reverse_iterator<Iter>
+operator + (typename reverse_iterator<Iter>::difference_type __n, const reverse_iterator<Iter> &__x)
+{return reverse_iterator<Iter>(__x.base() - __n);}
 }	//namespace ft
 
 #endif
