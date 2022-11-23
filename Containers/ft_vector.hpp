@@ -6,7 +6,7 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/03 08:52:01 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/11/22 20:40:43 by obelkhad         ###   ########.fr       */
+/*   Updated: 2022/11/23 10:35:13 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,17 +32,18 @@ namespace ft
 		//+------------------------------------------------------------------+//
 
 	public:
-		typedef _Tp     	                                value_type;
-		typedef	_Allocator									allocator_type;
-		typedef typename allocator_type::pointer            pointer;
-		typedef typename allocator_type::reference		    reference;
-		typedef typename allocator_type::const_pointer      const_pointer;
-		typedef typename allocator_type::const_reference	const_reference;
-		typedef typename allocator_type::size_type          size_type;
-		typedef typename allocator_type::difference_type    difference_type;
-		typedef	base_Iterator<pointer>						iterator;
-		typedef	base_Iterator<const_pointer>				const_iterator;
-
+		typedef _Tp     	                                	value_type;
+		typedef	_Allocator										allocator_type;
+		typedef typename allocator_type::pointer            	pointer;
+		typedef typename allocator_type::reference		    	reference;
+		typedef typename allocator_type::const_pointer      	const_pointer;
+		typedef typename allocator_type::const_reference		const_reference;
+		typedef typename allocator_type::size_type          	size_type;
+		typedef typename allocator_type::difference_type    	difference_type;
+		typedef	ft::base_Iterator<pointer>						iterator;
+		typedef	ft::base_Iterator<const_pointer>				const_iterator;
+        typedef ft::reverse_iterator<iterator>                  reverse_iterator;
+    	typedef ft::reverse_iterator<const_iterator>            const_reverse_iterator;
 	private:
 		pointer                                         __begin_;
 		pointer                                         __end_;
@@ -152,19 +153,35 @@ namespace ft
 			__alloc.deallocate(__begin_, capacity());
 		}
 		//+------------------------------------------------------------------+//
-		//|    	                       [ Iterator ]                     	 |//
+		//|    	              [ iterator / const_iterator ]                  |//
 		//+------------------------------------------------------------------+//
-		
 		iterator begin()
-		{
-			// iterator(__p);
-			return (__make_iter(__begin_));
-		}
+		{return iterator(__begin_);}
 		
 		iterator end()
-		{
-			return (__make_iter(__end_));
-		}
+		{return iterator(__end_);}
+		
+		const_iterator begin() const
+		{return const_iterator(__begin_);}
+		
+		const_iterator end() const
+		{return const_iterator(__end_);}
+	
+		//+------------------------------------------------------------------+//
+		//|           [ reverse iterator / reverse const_iterator ]          |//
+		//+------------------------------------------------------------------+//
+		reverse_iterator rbegin()
+		{return reverse_iterator(__end_);}
+		
+		reverse_iterator rend()
+		{return reverse_iterator(__begin_);}
+		
+		const_reverse_iterator crbegin() const
+		{return const_reverse_iterator(__end_);}
+		
+		const_reverse_iterator crend() const
+		{return const_reverse_iterator(__begin_);}
+
 		//+------------------------------------------------------------------+//
 		//|    	                       [ Capacity ]                     	 |//
 		//+------------------------------------------------------------------+//
@@ -193,7 +210,7 @@ namespace ft
 			{
 				__split_buffer __v(__n, size(), __alloc);
 				__construct_backward_and_swap_(__v);
-			}	//~__split_buffer() = old vector destroy
+			}	//	~__split_buffer() => destroy the old vector
 		}
 
 		void resize (size_type __n, const_reference __val = value_type()) // exemple value_type() = int() = 0
@@ -311,6 +328,18 @@ namespace ft
 			return __first;
 		}
 
+		//-------------------------------------------------------- [ puch_back ]
+		void push_back(const_reference __x)
+		{
+			if (__end_ != __end_cap_)
+				__alloc.construct(__end_++, __x);
+			else
+			{
+				__split_buffer __v(__recommend(size() + 1), size(), __alloc);
+				__alloc.construct(_VSTD::__to_raw_pointer(__v.vec.__end_++), __x);
+				__construct_backward_and_swap_(__v);
+			}
+		}
 	private:
 		//+------------------------------------------------------------------+//
 		//|                             [ Tools ]                            |//
@@ -371,8 +400,8 @@ namespace ft
 	{
 		/* Construct Backward */
 		pointer __e = __end_;
-		while (__e-- != __begin_)
-			__v.vec.__alloc.construct(--__v.vec.__begin_, *__e);
+		while (__e != __begin_)
+			__v.vec.__alloc.construct(--__v.vec.__begin_, *--__e);
 
 		/* Swap */
 		std::swap(__begin_, __v.vec.__begin_);
