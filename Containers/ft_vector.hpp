@@ -6,7 +6,7 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/03 08:52:01 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/11/23 15:34:02 by obelkhad         ###   ########.fr       */
+/*   Updated: 2022/11/24 21:03:47 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include <iostream>
 #include <algorithm>
 #include "../iterators/iterator.hpp"
+#include "../type_traits/type_traits.hpp"
 
 namespace ft
 {
@@ -95,30 +96,16 @@ namespace ft
 			}	
 		}
 
-
-// vector(
-// 		_InputIterator __first,
-// 		_InputIterator __last,
-// 		const allocator_type& __a,
-// 		typename enable_if<
-// 			__is_input_iterator<_InputIterator>::value
-// 			&&
-// 			!__is_forward_iterator<_InputIterator>::value 
-// 			&&
-// 			is_constructible<value_type,typename iterator_traits<_InputIterator>::reference>::value
-// 		>::type*
-// 		)
-
 		/* Range constructor */
-		// template <class InputIterator>
-		// vector (InputIterator first, InputIterator last, const allocator_type &alloc = allocator_type(),
-		// 	typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type* = 0)
-		// :	__begin_(nullptr), __end_(nullptr), __end_cap_(nullptr), __alloc(alloc)
-		// {
-		// 	std::cout << "range container\n";
-		// 	for (; first != last; ++first)
-        // 		push_back(*first);
-		// }
+		template <class InputIterator>
+		vector (InputIterator first, InputIterator last, const allocator_type &alloc = allocator_type(),
+			typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type* = 0)
+		:	__begin_(nullptr), __end_(nullptr), __end_cap_(nullptr), __alloc(alloc)
+		{
+			std::cout << "range container\n";
+			for (; first != last; ++first)
+        		push_back(*first);
+		}
 
 		/* Copy constructor */
 		vector(const vector &__x)
@@ -296,11 +283,54 @@ namespace ft
 			return __make_iter(__p);
 		}
 
-		// template <class InputIterator>
-		// void insert (iterator position, InputIterator first, InputIterator last)
-		// {
-			
-		// }
+		template <class InputIterator>
+		void insert (iterator position, InputIterator first, InputIterator last,
+			typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type* = 0)
+		{
+		// 	#if _LIBCPP_DEBUG_LEVEL >= 2
+		// 	_LIBCPP_ASSERT(__get_const_db()->__find_c_from_i(&__position) == this,
+		// 		"vector::insert(iterator, range) called with an iterator not"
+		// 		" referring to this vector");
+		// #endif
+		// 	difference_type __off = __position - begin();
+		// 	pointer __p = this->__begin_ + __off;
+		// 	allocator_type& __a = this->__alloc();
+		// 	pointer __old_last = this->__end_;
+		// 	for (; this->__end_ != this->__end_cap() && __first != __last; ++__first)
+		// 	{
+		// 		__RAII_IncreaseAnnotator __annotator(*this);
+		// 		__alloc_traits::construct(__a, _VSTD::__to_raw_pointer(this->__end_),
+		// 								*__first);
+		// 		++this->__end_;
+		// 		__annotator.__done();
+		// 	}
+		// 	__split_buffer<value_type, allocator_type&> __v(__a);
+		// 	if (__first != __last)
+		// 	{
+		// #ifndef _LIBCPP_NO_EXCEPTIONS
+		// 		try
+		// 		{
+		// #endif  // _LIBCPP_NO_EXCEPTIONS
+		// 			__v.__construct_at_end(__first, __last);
+		// 			difference_type __old_size = __old_last - this->__begin_;
+		// 			difference_type __old_p = __p - this->__begin_;
+		// 			reserve(__recommend(size() + __v.size()));
+		// 			__p = this->__begin_ + __old_p;
+		// 			__old_last = this->__begin_ + __old_size;
+		// #ifndef _LIBCPP_NO_EXCEPTIONS
+		// 		}
+		// 		catch (...)
+		// 		{
+		// 			erase(__make_iter(__old_last), end());
+		// 			throw;
+		// 		}
+		// #endif  // _LIBCPP_NO_EXCEPTIONS
+		// 	}
+		// 	__p = _VSTD::rotate(__p, __old_last, this->__end_);
+		// 	insert(__make_iter(__p), make_move_iterator(__v.begin()),
+		// 									make_move_iterator(__v.end()));
+		// 	return begin() + __off;
+		}
 
 		//------------------------------------------------------------ [ erase ]
 		iterator erase(iterator __position)
@@ -341,12 +371,73 @@ namespace ft
 			}
 		}
 
-		//-------------------------------------------------------- [ pop_back ]
+		//--------------------------------------------------------- [ pop_back ]
 		void pop_back()
 		{
 			if (!empty())
 				__alloc.destroy(--__end_);
 		}
+
+		//------------------------------------------------------------- [ swap ]
+		void swap (vector &x)
+		{
+			std::swap(__begin_, x.__begin_);
+			std::swap(__end_, x.__end_);
+			std::swap(__end_cap_, x.__end_cap_);
+		}
+
+		//----------------------------------------------------------- [ assing ]
+		void assign (size_type __n, const_reference __val)
+		{
+			if (__n <= capacity())
+			{
+				size_type __size = size();
+				std::fill_n(__begin_, std::min(__n, __size), __val);
+				if (__n > __size)
+					__construct_at_end(__n - __size, __val);
+				else
+					__destruct_at_end(__begin_ + __n);
+			}
+			else
+			{
+				/* Destroy */
+				clear();
+				
+				/* Deallocate*/
+				__alloc.deallocate(__begin_, capacity());
+				__begin_ = __end_ = __end_cap_ = nullptr;
+				
+				/* Allocate*/ 
+				size_type __s = __recommend(__n);
+				if (__s > max_size())
+					__throw_length_error();
+				__begin_ == __end_ = __alloc.allocate(__s);
+				__end_cap_ = __begin_ + __s;
+
+				/* Construct*/ 
+				__construct_at_end(__n, __val);
+			}
+		}
+		// template <class InputIterator> 
+		// void assign (InputIterator first, InputIterator last, 
+		// 	typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type* = 0)
+		// {
+		// 	clear();
+		// 	for (; __first != __last; ++__first)
+		// 		push_back(*__first);
+		// }
+		//+------------------------------------------------------------------+//
+		//|    	                    [ Element access ]                       |//
+		//+------------------------------------------------------------------+//
+		// operator[]
+		// at
+		// front
+		// back
+		// data
+		reference front();
+		const_reference front() const;
+
+
 	private:
 		//+------------------------------------------------------------------+//
 		//|                             [ Tools ]                            |//
