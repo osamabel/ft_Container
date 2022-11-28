@@ -6,17 +6,19 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/03 08:52:01 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/11/24 21:03:47 by obelkhad         ###   ########.fr       */
+/*   Updated: 2022/11/28 18:04:33 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef FT_VECTOR_H
-#define FT_VECTOR_H
+#ifndef FT_VECTOR_HPP
+#define FT_VECTOR_HPP
+
 #include <memory>
 #include <iostream>
 #include <algorithm>
 #include "../iterators/iterator.hpp"
 #include "../type_traits/type_traits.hpp"
+#include "../algorithm/algorithm.hpp"
 
 namespace ft
 {
@@ -62,37 +64,37 @@ namespace ft
 		{
 			throw std::out_of_range("vector");
 		}
+		void __throw_is_empty() const
+		{
+			throw "vector is empty";
+		}
 	public:
 		//+------------------------------------------------------------------+//
 		//|                          [ Constracors ]                         |//
 		//+------------------------------------------------------------------+//
 		/* Empty container constructor (default constructor) */
-		explicit vector (const allocator_type& alloc = allocator_type())
+		explicit vector (const allocator_type &alloc = allocator_type())
 		:	__begin_(nullptr), __end_(nullptr), __end_cap_(nullptr), __alloc(alloc)
 		{
-			std::cout << "Empty container\n";
+			// std::cout << "Empty container\n";
 		}
 		
 		/* Fill constructor */
-		explicit vector (size_type __n, const value_type& __val = value_type(), const allocator_type& alloc = allocator_type())
+		explicit vector (size_type __n, const value_type &__val = value_type(), const allocator_type& alloc = allocator_type())
 		:	__begin_(nullptr), __end_(nullptr), __end_cap_(nullptr), __alloc(alloc)
 		{
-			std::cout << "Fill container\n";
+			// std::cout << "Fill container\n";
 			if (__n > 0)
 			{
 				/* Vector Allocation with size of (__n), and assign it to __begin_ */
 				if (__n > __alloc.max_size())
 					__throw_length_error();
-				__begin_ = __alloc.allocate(__n);
-				__end_ = __begin_;
+				__begin_ = __end_ = __alloc.allocate(__n);
 				__end_cap_ = __begin_ + __n;
 
 				/* Constraction at end */
-				while (--__n >= 0)
-				{
-					__alloc.construct(__end_, __val);
-					++__end_;	
-				}
+				while (__n-- > 0)
+					__alloc.construct(__end_++, __val);
 			}	
 		}
 
@@ -102,7 +104,6 @@ namespace ft
 			typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type* = 0)
 		:	__begin_(nullptr), __end_(nullptr), __end_cap_(nullptr), __alloc(alloc)
 		{
-			std::cout << "range container\n";
 			for (; first != last; ++first)
         		push_back(*first);
 		}
@@ -111,7 +112,7 @@ namespace ft
 		vector(const vector &__x)
 		:	__begin_(nullptr), __end_(nullptr), __end_cap_(nullptr), __alloc(__x.__alloc)
 		{
-			std::cout << "copy container\n";
+			// std::cout << "copy container\n";
 			pointer	__begin_origine = __x.__begin_;
 			size_type __n = __x.size();
 			if (__n > 0)
@@ -131,7 +132,7 @@ namespace ft
 
 		~vector ()
 		{
-			std::cout << "destrctor container\n";
+			// std::cout << "destrctor container\n";
 			/* destruct */
 			while (__end_ != __begin_)
 				__alloc.destroy(--__end_);
@@ -211,7 +212,7 @@ namespace ft
 			else if (__current_size > __n)
 			{
 				/* Destruct At End */
-				__destruct_at_end(__begin_);
+				__destruct_at_end(__begin_ + __n);
 			}
 		}
 
@@ -243,7 +244,7 @@ namespace ft
 			else
 			{
 				__split_buffer __v(__recommend(size() + 1), __p - __begin_, __alloc);
-				__v.push_back(__val);
+				__v.vec.push_back(__val);
 				__p = __construct_backward_and_swap_(__v, __p);
 			}
 			return __make_iter(__p);
@@ -284,52 +285,35 @@ namespace ft
 		}
 
 		template <class InputIterator>
-		void insert (iterator position, InputIterator first, InputIterator last,
+		iterator insert (iterator __position, InputIterator __first, InputIterator __last,
 			typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type* = 0)
 		{
-		// 	#if _LIBCPP_DEBUG_LEVEL >= 2
-		// 	_LIBCPP_ASSERT(__get_const_db()->__find_c_from_i(&__position) == this,
-		// 		"vector::insert(iterator, range) called with an iterator not"
-		// 		" referring to this vector");
-		// #endif
-		// 	difference_type __off = __position - begin();
-		// 	pointer __p = this->__begin_ + __off;
-		// 	allocator_type& __a = this->__alloc();
-		// 	pointer __old_last = this->__end_;
-		// 	for (; this->__end_ != this->__end_cap() && __first != __last; ++__first)
-		// 	{
-		// 		__RAII_IncreaseAnnotator __annotator(*this);
-		// 		__alloc_traits::construct(__a, _VSTD::__to_raw_pointer(this->__end_),
-		// 								*__first);
-		// 		++this->__end_;
-		// 		__annotator.__done();
-		// 	}
-		// 	__split_buffer<value_type, allocator_type&> __v(__a);
-		// 	if (__first != __last)
-		// 	{
-		// #ifndef _LIBCPP_NO_EXCEPTIONS
-		// 		try
-		// 		{
-		// #endif  // _LIBCPP_NO_EXCEPTIONS
-		// 			__v.__construct_at_end(__first, __last);
-		// 			difference_type __old_size = __old_last - this->__begin_;
-		// 			difference_type __old_p = __p - this->__begin_;
-		// 			reserve(__recommend(size() + __v.size()));
-		// 			__p = this->__begin_ + __old_p;
-		// 			__old_last = this->__begin_ + __old_size;
-		// #ifndef _LIBCPP_NO_EXCEPTIONS
-		// 		}
-		// 		catch (...)
-		// 		{
-		// 			erase(__make_iter(__old_last), end());
-		// 			throw;
-		// 		}
-		// #endif  // _LIBCPP_NO_EXCEPTIONS
-		// 	}
-		// 	__p = _VSTD::rotate(__p, __old_last, this->__end_);
-		// 	insert(__make_iter(__p), make_move_iterator(__v.begin()),
-		// 									make_move_iterator(__v.end()));
-		// 	return begin() + __off;
+			size_type __n = __position - begin();
+			size_type __size = __last - __first;
+			pointer __p = __begin_ + __n;
+			if (__size > 0)
+			{
+				if (__size <= static_cast<size_type>(__end_cap_ - __end_))
+				{
+					iterator __it = __make_iter(__p);
+					while (__first != __last)
+						insert(__it++, *__first++);
+				}
+				else
+				{
+					pointer __ptr = __begin_;
+					__split_buffer __v(__recommend(size() + __size), 0, __alloc);
+					while (__ptr != __p)
+						__v.vec.__alloc.construct(__v.vec.__end_++, *__ptr++);
+					while (__first != __last)
+						__v.vec.__alloc.construct(__v.vec.__end_++, *__first++);
+					while (__ptr != __end_)
+						__v.vec.__alloc.construct(__v.vec.__end_++, *__ptr++);
+					swap(__v.vec);
+					__p = __begin_ + __n;
+				}
+			}
+			return __make_iter(__p);
 		}
 
 		//------------------------------------------------------------ [ erase ]
@@ -366,7 +350,7 @@ namespace ft
 			else
 			{
 				__split_buffer __v(__recommend(size() + 1), size(), __alloc);
-				__alloc.construct(_VSTD::__to_raw_pointer(__v.vec.__end_++), __x);
+				__v.vec.__alloc.construct(__v.vec.__end_++, __x);
 				__construct_backward_and_swap_(__v);
 			}
 		}
@@ -411,41 +395,105 @@ namespace ft
 				size_type __s = __recommend(__n);
 				if (__s > max_size())
 					__throw_length_error();
-				__begin_ == __end_ = __alloc.allocate(__s);
+				__begin_ = __end_ = __alloc.allocate(__s);
 				__end_cap_ = __begin_ + __s;
 
 				/* Construct*/ 
 				__construct_at_end(__n, __val);
 			}
 		}
-		// template <class InputIterator> 
-		// void assign (InputIterator first, InputIterator last, 
-		// 	typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type* = 0)
-		// {
-		// 	clear();
-		// 	for (; __first != __last; ++__first)
-		// 		push_back(*__first);
-		// }
+
+		template <class InputIterator> 
+		void assign (InputIterator __first, InputIterator __last, 
+			typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type* = 0)
+		{
+			clear();
+			__split_buffer __v(__last - __first, 0, __alloc);
+			swap(__v.vec);
+			while (__first != __last)
+				__alloc.construct(__end_++, *__first++);
+		}
 		//+------------------------------------------------------------------+//
 		//|    	                    [ Element access ]                       |//
 		//+------------------------------------------------------------------+//
 		// operator[]
 		// at
-		// front
-		// back
-		// data
-		reference front();
-		const_reference front() const;
+		//------------------------------------------------------------ [ front ]
+		reference front()
+		{
+			if(empty())
+				__throw_is_empty();
+			return *__begin_;
+		}
 
+		const_reference front() const
+		{
+			if(empty())
+				__throw_is_empty();
+			return *__begin_;
+		}
+
+		//------------------------------------------------------------- [ back ]
+		reference back()
+		{
+			if(empty())
+				__throw_is_empty();
+			return *(__end_ - 1);
+		}
+
+		const_reference back() const
+		{
+			if(empty())
+				__throw_is_empty();
+			return *(__end_ - 1);
+		}
+		
+		//------------------------------------------------------------- [ data ]
+		value_type* data() throw()
+		{
+			return __begin_;
+		}
+		
+		const value_type* data() const throw()
+		{
+			return __begin_;
+		}
+
+		//--------------------------------------------------------------- [ at ]
+		reference at (size_type n)
+		{
+			if (n >= size() || n < 0)
+				__throw_out_of_range();
+			return *(__begin_ + n);
+		}
+
+		const_reference at (size_type n) const
+		{
+			if (n >= size() || n < 0)
+				__throw_out_of_range();
+			return *(__begin_ + n);
+		}
+
+		//---------------------------------------------------------- operator []
+		reference operator [] (size_type n)
+		{ return *(__begin_ + n); }
+
+		const_reference operator [] (size_type n) const
+		{ return *(__begin_ + n); }
+		//+------------------------------------------------------------------+//
+		//|    	                      [ Allocator ]                          |//
+		//+------------------------------------------------------------------+//
+		//---------------------------------------------------- [ get_allocator ]
+		allocator_type get_allocator() const
+		{ return __alloc(); }
 
 	private:
 		//+------------------------------------------------------------------+//
 		//|                             [ Tools ]                            |//
 		//+------------------------------------------------------------------+//
-		class __split_buffer
+		struct __split_buffer
 		{
-		public:
-			ft::vector<value_type, allocator_type> vec;
+			vector<value_type, allocator_type> vec;
 			__split_buffer(size_type __cap, size_type __size, allocator_type &alloc) : vec(alloc)
 			{
 				pointer __new;
@@ -455,7 +503,7 @@ namespace ft
 			}
 			~__split_buffer()
 			{
-				std::cout << "old vector destrected \n";
+				// std::cout << "old vector destrected \n";
 			}
 		};
 
@@ -468,15 +516,19 @@ namespace ft
 		void __shift_right(pointer __pos, pointer __end_holder, pointer __p);
 		inline void move_backward(pointer _first, pointer _last, pointer _result);
 		inline iterator __make_iter(pointer __p);
+
+
 	};	// -------------------------------------------------   [ VECTOR ] ----//
 
 
-
-
+	//+----------------------------------------------------------------------+//
+	//|                         [ Private Tools ]                            |//
+	//+----------------------------------------------------------------------+//
 	template<class _Tp, class _Allocator>
 	typename vector<_Tp, _Allocator>::pointer 
 	vector<_Tp, _Allocator>::__construct_backward_and_swap_(__split_buffer &__v, pointer __p)
 	{
+		pointer __r = __v.vec.__begin_;
 		/* Construct Forward */
 		pointer __ptr = __p;
 		while (__ptr != __end_)
@@ -488,10 +540,8 @@ namespace ft
 			__v.vec.__alloc.construct(--__v.vec.__begin_, *__ptr--);
 
 		/* Swap */
-		std::swap(__begin_, __v.vec.__begin_);
-		std::swap(__end_, __v.vec.__end_);
-		std::swap(__end_cap_, __v.vec.__end_cap_);
-		return (__begin_);
+		swap (__v.vec);
+		return (__r);
 	}
 	template<class _Tp, class _Allocator>
 	void vector<_Tp, _Allocator>::__construct_backward_and_swap_(__split_buffer &__v)
@@ -502,9 +552,7 @@ namespace ft
 			__v.vec.__alloc.construct(--__v.vec.__begin_, *--__e);
 
 		/* Swap */
-		std::swap(__begin_, __v.vec.__begin_);
-		std::swap(__end_, __v.vec.__end_);
-		std::swap(__end_cap_, __v.vec.__end_cap_);
+		swap (__v.vec);
 	}
 
 	template<class _Tp, class _Allocator>
@@ -559,14 +607,14 @@ namespace ft
     }
 	
 	template <class _Tp, class _Allocator>
-	void vector<_Tp, _Allocator>::__shift_right(pointer __pos, pointer __end_holder, pointer __p)
+	void vector<_Tp, _Allocator>::__shift_right(pointer __pos, pointer __end_holder, pointer __to)
     {
-        pointer __old_last = __end_;
-        difference_type _n = __end_ - __p;
+        pointer __old_end_ = __end_;
+        difference_type _n = __end_ - __to;
 
-        for (pointer __p = __pos + _n; __p < __end_holder; ++__p, ++__end_)
-            __alloc.construct( __end_, *__p);
-        move_backward(__pos, __pos + _n, __old_last);
+        for (pointer __i = __pos + _n; __i < __end_holder; ++__i, ++__end_)
+            __alloc.construct( __end_, *__i);
+        move_backward(__pos, __pos + _n, __old_end_);
     }
 	
 	template <class _Tp, class _Allocator>
@@ -574,6 +622,60 @@ namespace ft
 	vector<_Tp, _Allocator>::__make_iter(pointer __p)
 	{
 		return iterator(__p);
+	}
+
+
+	//+----------------------------------------------------------------------+//
+	//|                     [  non-member overloads  ]                       |//
+	//+----------------------------------------------------------------------+//
+
+	//     +-------------------------------------------------------------------+
+	// ==> |                  [ ft::relational operators ]                     |
+	//     +-------------------------------------------------------------------+
+	
+	template <class T, class Alloc>  
+	bool operator == (const vector<T,Alloc> &__x, const vector<T,Alloc> &__y)
+	{
+		return __y.size() == __y.size() && ft::equal(__x.begin(), __x.end(), __y.begin());
+	}
+
+	// template <class T, class Alloc>  
+	// bool operator != (const vector<T,Alloc> &__x, const vector<T,Alloc> &__y)
+	// {
+	// 	return !(__x ==__y);
+	// }
+
+	// template <class T, class Alloc>  
+	// bool operator <  (const vector<T,Alloc> &__x, const vector<T,Alloc> &__y)
+	// {
+	// 	return ft::lexicographical_compare(__x.begin(), __x.end(), __y.begin(), __y.end());
+	// }
+
+	// template <class T, class Alloc>  
+	// bool operator >  (const vector<T,Alloc>& __x, const vector<T,Alloc>& __y)
+	// {
+	// 	return __y < __x;
+	// }
+
+	// template <class T, class Alloc>  
+	// bool operator <= (const vector<T,Alloc>& __x, const vector<T,Alloc>& __y)
+	// {
+	// 	return  !(__y < __x);	
+	// }
+	// template <class T, class Alloc>  
+	// bool operator >= (const vector<T,Alloc>& __x, const vector<T,Alloc>& __y)
+	// {
+	// 	return  !(__x < __y);		
+	// }
+	
+	//     +-------------------------------------------------------------------+
+	// ==> |                         [ ft::swap ]                              |
+	//     +-------------------------------------------------------------------+
+
+	template <class _Tp, class _Allocator>
+	inline void swap(vector<_Tp, _Allocator> &__x, vector<_Tp, _Allocator> &__y)
+	{
+		__x.swap(__y);
 	}
 
 }	//namespace ft
