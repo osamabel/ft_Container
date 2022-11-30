@@ -6,12 +6,13 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/06 17:43:58 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/11/23 10:18:45 by obelkhad         ###   ########.fr       */
+/*   Updated: 2022/11/30 18:09:29 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef ITERATOR_HPP
 #define ITERATOR_HPP
+
 #include "../traits/iterator_traits.hpp"
 
 namespace ft
@@ -20,26 +21,31 @@ namespace ft
 	class base_Iterator
 	{
 	public:
-		typedef Iter                                              				iterator_type;
-		typedef typename iterator_traits<iterator_type>::iterator_category		iterator_category;
-		typedef typename iterator_traits<iterator_type>::difference_type		difference_type;
-		typedef typename iterator_traits<iterator_type>::value_type				value_type;
-		typedef typename iterator_traits<iterator_type>::pointer				pointer;
-		typedef typename iterator_traits<iterator_type>::reference				reference;
+		typedef Iter																iterator_type;
+		typedef typename ft::iterator_traits<iterator_type>::iterator_category		iterator_category;
+		typedef typename ft::iterator_traits<iterator_type>::difference_type		difference_type;
+		typedef typename ft::iterator_traits<iterator_type>::value_type				value_type;
+		typedef typename ft::iterator_traits<iterator_type>::pointer				pointer;
+		typedef typename ft::iterator_traits<iterator_type>::reference				reference;
 
-		//+-------------------------------------------------------------------+
-		//|					          base()     							  |
-		//+-------------------------------------------------------------------+
-		iterator_type base() const	{ return (this->__i); }
+		//+--------------------------------------------------------------------+
+		//|					           base()     							   |
+		//+--------------------------------------------------------------------+
+		iterator_type base() const { return (this->__i); }
 
-		//+-------------------------------------------------------------------+
-		//|					          Constructors							  |
-		//+-------------------------------------------------------------------+
+
+		//+--------------------------------------------------------------------+
+		//|					         Constructors                              |
+		//+--------------------------------------------------------------------+
 		// default-constructible
-		base_Iterator() : __i() { }
+		base_Iterator()
+		{}
 
 		// copy-constructible,
- 		template <class _Up> base_Iterator(const base_Iterator<_Up> &__u) : __i(__u.base()) { }
+ 		template <class _Up> 
+		base_Iterator(const base_Iterator<_Up> &__u) : __i((iterator_type)__u.base())
+		{}
+	
 		base_Iterator(const base_Iterator &__x): __i(__x.base())
 		{}
 
@@ -56,7 +62,8 @@ namespace ft
     	}
 
 		// destructible
-		~base_Iterator() { }
+		~base_Iterator()
+		{}
 
 		//+-------------------------------------------------------------------+
 		//|					    Input::Dereferenceable	 		  	  	      |
