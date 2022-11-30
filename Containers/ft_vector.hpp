@@ -6,7 +6,7 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/03 08:52:01 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/11/28 18:04:33 by obelkhad         ###   ########.fr       */
+/*   Updated: 2022/11/30 16:32:38 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,16 +23,16 @@
 namespace ft
 {
 
-	//+----------------------------------------------------------------------+//
-	//|                               Vector                                 |//
-	//+----------------------------------------------------------------------+//
+	//+------------------------------------------------------------------------+
+	//|                               Vector                                   |
+	//+------------------------------------------------------------------------+
 	template<class _Tp, class _Allocator = std::allocator<_Tp> > 
 
 	class vector
 	{
-		//+------------------------------------------------------------------+//
-		//|                         [ Member types ]                         |//
-		//+------------------------------------------------------------------+//
+		//+--------------------------------------------------------------------+
+		//|                         [ Member types ]                           |
+		//+--------------------------------------------------------------------+
 
 	public:
 		typedef _Tp     	                                	value_type;
@@ -48,14 +48,14 @@ namespace ft
         typedef ft::reverse_iterator<iterator>                  reverse_iterator;
     	typedef ft::reverse_iterator<const_iterator>            const_reverse_iterator;
 	private:
-		pointer                                         __begin_;
-		pointer                                         __end_;
-		pointer                                         __end_cap_; //end of the allocated memory
-		allocator_type									__alloc;
+		pointer                                         		__begin_;
+		pointer                                         		__end_;
+		pointer                                         		__end_cap_; //end of the allocated memory
+		allocator_type											__alloc;
 
-		//+------------------------------------------------------------------+//
-		//|                           [ Exceptions ]                         |//
-		//+------------------------------------------------------------------+//
+		//+--------------------------------------------------------------------+
+		//|                           [ Exceptions ]                           |
+		//+--------------------------------------------------------------------+
 		void __throw_length_error() const
 		{
 			throw std::length_error("vector");
@@ -69,9 +69,9 @@ namespace ft
 			throw "vector is empty";
 		}
 	public:
-		//+------------------------------------------------------------------+//
-		//|                          [ Constracors ]                         |//
-		//+------------------------------------------------------------------+//
+		//+--------------------------------------------------------------------+
+		//|                          [ Constracors ]                           |
+		//+--------------------------------------------------------------------+
 		/* Empty container constructor (default constructor) */
 		explicit vector (const allocator_type &alloc = allocator_type())
 		:	__begin_(nullptr), __end_(nullptr), __end_cap_(nullptr), __alloc(alloc)
@@ -130,6 +130,14 @@ namespace ft
 			}
 		}
 
+		vector &operator = (const vector &__x)
+		{
+			std::cout << "assign container\n";
+			if (this != &__x)
+            	assign(__x.__begin_, __x.__end_);
+       		return (*this);
+		}
+
 		~vector ()
 		{
 			// std::cout << "destrctor container\n";
@@ -140,28 +148,29 @@ namespace ft
 			/* deallocate */
 			__alloc.deallocate(__begin_, capacity());
 		}
-		//+------------------------------------------------------------------+//
-		//|    	              [ iterator / const_iterator ]                  |//
-		//+------------------------------------------------------------------+//
-		iterator begin()
+
+		//+--------------------------------------------------------------------+
+		//|    	              [ iterator / const_iterator ]                    |
+		//+--------------------------------------------------------------------+
+		iterator begin() const 
 		{return iterator(__begin_);}
 		
-		iterator end()
+		iterator end() const
 		{return iterator(__end_);}
 		
-		const_iterator begin() const
+		const_iterator cbegin() const
 		{return const_iterator(__begin_);}
 		
-		const_iterator end() const
+		const_iterator cend() const
 		{return const_iterator(__end_);}
 	
-		//+------------------------------------------------------------------+//
-		//|           [ reverse iterator / reverse const_iterator ]          |//
-		//+------------------------------------------------------------------+//
-		reverse_iterator rbegin()
+		//+--------------------------------------------------------------------+
+		//|           [ reverse iterator / reverse const_iterator ]            |
+		//+--------------------------------------------------------------------+
+		reverse_iterator rbegin() const
 		{return reverse_iterator(__end_);}
 		
-		reverse_iterator rend()
+		reverse_iterator rend() const
 		{return reverse_iterator(__begin_);}
 		
 		const_reverse_iterator crbegin() const
@@ -170,9 +179,9 @@ namespace ft
 		const_reverse_iterator crend() const
 		{return const_reverse_iterator(__begin_);}
 
-		//+------------------------------------------------------------------+//
-		//|    	                       [ Capacity ]                     	 |//
-		//+------------------------------------------------------------------+//
+		//+--------------------------------------------------------------------+
+		//|    	                       [ Capacity ]                     	   |
+		//+--------------------------------------------------------------------+
 		size_type size() const
 		{ return static_cast<size_type>(__end_ - __begin_); }
 
@@ -216,9 +225,9 @@ namespace ft
 			}
 		}
 
-		//+------------------------------------------------------------------+//
-		//|    	                       [ Modifiers ]						  |//
-		//+------------------------------------------------------------------+//
+		//+--------------------------------------------------------------------+
+		//|    	                       [ Modifiers ]						    |
+		//+--------------------------------------------------------------------+
 		//------------------------------------------------------------ [ clear ]
 		void clear()
 		{ __destruct_at_end(__begin_); }
@@ -289,7 +298,7 @@ namespace ft
 			typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type* = 0)
 		{
 			size_type __n = __position - begin();
-			size_type __size = __last - __first;
+			size_type __size = std::distance(__first, __last);
 			pointer __p = __begin_ + __n;
 			if (__size > 0)
 			{
@@ -413,9 +422,9 @@ namespace ft
 			while (__first != __last)
 				__alloc.construct(__end_++, *__first++);
 		}
-		//+------------------------------------------------------------------+//
-		//|    	                    [ Element access ]                       |//
-		//+------------------------------------------------------------------+//
+		//+--------------------------------------------------------------------+
+		//|    	                    [ Element access ]                         |
+		//+--------------------------------------------------------------------+
 		// operator[]
 		// at
 		//------------------------------------------------------------ [ front ]
@@ -480,17 +489,17 @@ namespace ft
 
 		const_reference operator [] (size_type n) const
 		{ return *(__begin_ + n); }
-		//+------------------------------------------------------------------+//
-		//|    	                      [ Allocator ]                          |//
-		//+------------------------------------------------------------------+//
+		//+--------------------------------------------------------------------+
+		//|    	                       [ Allocator ]                           |
+		//+--------------------------------------------------------------------+
 		//---------------------------------------------------- [ get_allocator ]
 		allocator_type get_allocator() const
-		{ return __alloc(); }
+		{ return __alloc; }
 
 	private:
-		//+------------------------------------------------------------------+//
-		//|                             [ Tools ]                            |//
-		//+------------------------------------------------------------------+//
+		//+--------------------------------------------------------------------+
+		//|                             [ Tools ]                              |
+		//+--------------------------------------------------------------------+
 		struct __split_buffer
 		{
 			vector<value_type, allocator_type> vec;
@@ -521,9 +530,9 @@ namespace ft
 	};	// -------------------------------------------------   [ VECTOR ] ----//
 
 
-	//+----------------------------------------------------------------------+//
-	//|                         [ Private Tools ]                            |//
-	//+----------------------------------------------------------------------+//
+	//+------------------------------------------------------------------------+
+	//|                         [ Private Tools ]                              |
+	//+------------------------------------------------------------------------+
 	template<class _Tp, class _Allocator>
 	typename vector<_Tp, _Allocator>::pointer 
 	vector<_Tp, _Allocator>::__construct_backward_and_swap_(__split_buffer &__v, pointer __p)
@@ -625,48 +634,49 @@ namespace ft
 	}
 
 
-	//+----------------------------------------------------------------------+//
-	//|                     [  non-member overloads  ]                       |//
-	//+----------------------------------------------------------------------+//
+	//+------------------------------------------------------------------------+
+	//|                     [  non-member overloads  ]                         |
+	//+------------------------------------------------------------------------+
 
 	//     +-------------------------------------------------------------------+
 	// ==> |                  [ ft::relational operators ]                     |
 	//     +-------------------------------------------------------------------+
-	
+
+
 	template <class T, class Alloc>  
-	bool operator == (const vector<T,Alloc> &__x, const vector<T,Alloc> &__y)
+	bool operator == (const vector<T, Alloc> &__x, const vector<T, Alloc> &__y)
 	{
-		return __y.size() == __y.size() && ft::equal(__x.begin(), __x.end(), __y.begin());
+		return __x.size() == __y.size() && ft::equal(__x.begin(), __x.end(), __y.begin());
 	}
 
-	// template <class T, class Alloc>  
-	// bool operator != (const vector<T,Alloc> &__x, const vector<T,Alloc> &__y)
-	// {
-	// 	return !(__x ==__y);
-	// }
+	template <class T, class Alloc>  
+	bool operator != (const vector<T,Alloc> &__x, const vector<T,Alloc> &__y)
+	{
+		return !(__x ==__y);
+	}
 
-	// template <class T, class Alloc>  
-	// bool operator <  (const vector<T,Alloc> &__x, const vector<T,Alloc> &__y)
-	// {
-	// 	return ft::lexicographical_compare(__x.begin(), __x.end(), __y.begin(), __y.end());
-	// }
+	template <class T, class Alloc>  
+	bool operator <  (const vector<T,Alloc> &__x, const vector<T,Alloc> &__y)
+	{
+		return ft::lexicographical_compare(__x.begin(), __x.end(), __y.begin(), __y.end());
+	}
 
-	// template <class T, class Alloc>  
-	// bool operator >  (const vector<T,Alloc>& __x, const vector<T,Alloc>& __y)
-	// {
-	// 	return __y < __x;
-	// }
+	template <class T, class Alloc>  
+	bool operator >  (const vector<T,Alloc>& __x, const vector<T,Alloc>& __y)
+	{
+		return __y < __x;
+	}
 
-	// template <class T, class Alloc>  
-	// bool operator <= (const vector<T,Alloc>& __x, const vector<T,Alloc>& __y)
-	// {
-	// 	return  !(__y < __x);	
-	// }
-	// template <class T, class Alloc>  
-	// bool operator >= (const vector<T,Alloc>& __x, const vector<T,Alloc>& __y)
-	// {
-	// 	return  !(__x < __y);		
-	// }
+	template <class T, class Alloc>  
+	bool operator <= (const vector<T,Alloc>& __x, const vector<T,Alloc>& __y)
+	{
+		return  !(__y < __x);	
+	}
+	template <class T, class Alloc>  
+	bool operator >= (const vector<T,Alloc>& __x, const vector<T,Alloc>& __y)
+	{
+		return  !(__x < __y);		
+	}
 	
 	//     +-------------------------------------------------------------------+
 	// ==> |                         [ ft::swap ]                              |
