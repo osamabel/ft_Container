@@ -6,7 +6,7 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/30 18:17:11 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/11/30 19:03:26 by obelkhad         ###   ########.fr       */
+/*   Updated: 2022/12/01 12:22:12 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,14 +71,28 @@ namespace ft
 		//      +--------------------------------------------------------------+
 		// ====>|                                         [ Element access ]   |
 		//      +--------------------------------------------------------------+
-
+				reference top()
+				{ return c.back(); }
+				const_reference top() const
+				{ return c.back(); }
 
 		//      +--------------------------------------------------------------+
 		// ====>|                                               [ Capacity ]   |
 		//      +--------------------------------------------------------------+
+				bool empty() const
+				{ return c.empty(); }
+
+				size_type size() const
+				{ return c.size(); }
+
 		//      +--------------------------------------------------------------+
 		// ====>|                                               [ Modifiers ]   |
 		//      +--------------------------------------------------------------+
+				void push( const value_type &value )
+				{ c.puch_back(value); }
+
+				void pop()
+				{ c.pop_back(); }
 		//+--------------------------------------------------------------------+
 		//|                                                                    |
 		//|                         [ Member object ]                          |
@@ -86,12 +100,44 @@ namespace ft
 		//+--------------------------------------------------------------------+
 	protected:
 		container_type c;
+
+
+	// template <class T1, class _C1>
+    // friend
+    // bool
+    // operator==(const stack<T1, _C1>& __x, const stack<T1, _C1>& __y);
+
+    // template <class T1, class _C1>
+    // friend
+    // bool
+    // operator< (const stack<T1, _C1>& __x, const stack<T1, _C1>& __y);
 	};
 		//+--------------------------------------------------------------------+
 		//|                                                                    |
 		//|                    [NON Member functions ]                         |
 		//|                                                                    |
 		//+--------------------------------------------------------------------+
-}
+	template< class T, class Container >
+	bool operator == (const stack<T,Container> &__x, const stack<T,Container> &__y)
+	{ return __x.c == __y.c; }
 
-#endif
+	template< class T, class Container >
+	bool operator != ( const stack<T,Container> &__x, const stack<T,Container> &__y)
+	{ return !(__x == __y); }
+
+	template< class T, class Container >
+	bool operator < (const stack<T,Container> &__x, const stack<T,Container> &__y)
+	{return __x.c < __y.c; }
+	
+	template< class T, class Container >
+	bool operator <= (const stack<T,Container> &__x, const stack<T,Container> &__y)
+	{return !(__y < __x); }
+
+	template< class T, class Container >
+	bool operator > (const stack<T,Container> &__x, const stack<T,Container> &__y)
+	{return __y > __x; }
+
+	template< class T, class Container >
+	bool operator >= (const stack<T,Container> &__x, const stack<T,Container> &__y)
+	{return !(__x < __y); }
+}
