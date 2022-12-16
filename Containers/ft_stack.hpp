@@ -6,7 +6,7 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/30 18:17:11 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/12/01 12:22:12 by obelkhad         ###   ########.fr       */
+/*   Updated: 2022/12/02 17:28:44 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,10 +48,6 @@ namespace ft
 		//      +--------------------------------------------------------------+
 		// ====>|                                            [ Constracors ]   |
 		//      +--------------------------------------------------------------+
-				/* default constractor*/
-				stack() : c()
-				{}
-
 				/* copy constractor */
 				explicit stack(const container_type &cont = container_type()) : c(cont)
 				{}
@@ -59,7 +55,8 @@ namespace ft
 				{}
 
 				/* destractor */
-				~stack()()
+				~stack()
+				{}
 
 				/* operator = */
 				stack &operator = (const stack& assign)
@@ -89,7 +86,7 @@ namespace ft
 		// ====>|                                               [ Modifiers ]   |
 		//      +--------------------------------------------------------------+
 				void push( const value_type &value )
-				{ c.puch_back(value); }
+				{ c.push_back(value); }
 
 				void pop()
 				{ c.pop_back(); }
@@ -102,15 +99,13 @@ namespace ft
 		container_type c;
 
 
-	// template <class T1, class _C1>
-    // friend
-    // bool
-    // operator==(const stack<T1, _C1>& __x, const stack<T1, _C1>& __y);
-
-    // template <class T1, class _C1>
-    // friend
-    // bool
-    // operator< (const stack<T1, _C1>& __x, const stack<T1, _C1>& __y);
+	// freinds
+	public:
+		template < class Tp, class Cont >
+		friend bool operator == (const stack<Tp,Cont> &__x, const stack<Tp,Cont> &__y);
+		
+		template< class Tp, class Cont >
+		friend bool operator < (const stack<Tp,Cont> &__x, const stack<Tp,Cont> &__y);
 	};
 		//+--------------------------------------------------------------------+
 		//|                                                                    |
@@ -127,17 +122,19 @@ namespace ft
 
 	template< class T, class Container >
 	bool operator < (const stack<T,Container> &__x, const stack<T,Container> &__y)
-	{return __x.c < __y.c; }
+	{ return __x.c < __y.c; }
 	
 	template< class T, class Container >
 	bool operator <= (const stack<T,Container> &__x, const stack<T,Container> &__y)
-	{return !(__y < __x); }
+	{ return !(__y < __x); }
 
 	template< class T, class Container >
 	bool operator > (const stack<T,Container> &__x, const stack<T,Container> &__y)
-	{return __y > __x; }
+	{ return __y < __x; }
 
 	template< class T, class Container >
 	bool operator >= (const stack<T,Container> &__x, const stack<T,Container> &__y)
-	{return !(__x < __y); }
+	{ return !(__x < __y); }
 }
+
+#endif
