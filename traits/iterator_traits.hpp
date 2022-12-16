@@ -6,13 +6,14 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/12 16:08:49 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/11/30 18:14:09 by obelkhad         ###   ########.fr       */
+/*   Updated: 2022/12/01 12:34:38 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef ITERATOR_TRAITS_HPP
 #define ITERATOR_TRAITS_HPP
 
+#include "../type_traits/type_traits.hpp"
 namespace ft
 {
 	template<class Category, 
