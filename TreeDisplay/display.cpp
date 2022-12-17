@@ -6,13 +6,16 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/16 15:36:05 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/12/16 23:25:42 by obelkhad         ###   ########.fr       */
+/*   Updated: 2022/12/17 20:33:01 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <string>
+#include <iomanip>
+#include <locale> 
 #include "../Containers/ft_map.hpp"
 
 typedef ft::map<int, char>::node_pointer   			node_pointer;
@@ -30,7 +33,7 @@ typedef struct s_data{
 int nilNumber (node_pointer node)
 {
     if(node == nullptr)
-        return 0; 
+        return 1; 
     if(node->__left_ == nullptr && node->__right_ == nullptr) 
         return 2;         
     else if(node->__left_ != nullptr && node->__right_ == nullptr) 
@@ -38,7 +41,7 @@ int nilNumber (node_pointer node)
     else if(node->__left_ == nullptr && node->__right_ != nullptr) 
         return 1;         
     else
-        return nilNumber(node->__left_)+ nilNumber(node->__right_); 
+        return nilNumber(node->__left_) + nilNumber(node->__right_); 
 }
 
 void getInfo(node_pointer node, std::vector<t_data> &data)
@@ -99,14 +102,6 @@ void display(ft::map<int, char> &__m)
 	node_pointer root = __m.__root();
 
 	getInfo(root, data);
-
-	for (std::vector<t_data>::iterator x = data.begin(); x != data.end(); x++)
-	{
-		std::cout << "depth = " << x->__depth << '\t' <<
-		"direction = " << x->__direction << '\t' <<
-		"node.value.first = " << x->__node->__value_.first << '\t' <<
-		"nil = " << x->__nil << '\n';
-	}
 	sort(data.begin(), data.end(), compareByfirst);
 	std::cout << "===========================\n";
 	for (std::vector<t_data>::iterator x = data.begin(); x != data.end(); x++)
@@ -117,23 +112,50 @@ void display(ft::map<int, char> &__m)
 		"nil = " << x->__nil << '\n';
 	}
 	std::cout << "===========================\n";
+	bool r = false;
+	int depth = 0;
 	for (std::vector<t_data>::iterator x = data.begin(); x != data.end(); x++)
 	{
+		for (int i = 0; i <= x->__depth + 5; ++i)
+		{
+			if (r && i == depth - 1 && depth < x->__depth)
+			{
+				std::cout << "/";
+				r = false;
+			}
+			if (i < x->__depth - 1)
+				std::cout << "\t\t";
+		}
+				
+		if (x->__node == x->__node->__parent_->__right_)
+		{
+			std::cout << " ";
+		}
+		if (x->__node == x->__node->__parent_->__left_ && x->__node->__parent_->__parent_)
+			std::cout << "\\" ;
 
-		for (int i = 1; i < x->__depth; ++i)
-			std::cout << "\t";
-		if (x->__direction == '<')
-			std::cout << "|_" ;
-		if (x->__direction == '>')
-			std::cout << " _" ;
+
+		// ----------------------------------------------------------------------------- print value
+		std::cout << std::setfill('_') << std::right;
 		if (x->__node->__is_black_)
-			std::cout << x->__node->__value_.first;
+			std::cout << std::setw(14) << std::to_string(x->__node->__value_.first);
 		else
-			std::cout << "\033[1;31m" << x->__node->__value_.first <<"\033[0m";
-		if (x->__direction == 'r')
-			std::cout << '_' << '\n';
-		else
-			std::cout << '\n';
-	}
-		
-}
+			std::cout << "\033[1;31m" << std::setw(14) << std::to_string(x->__node->__value_.first) << "\033[0m";
+		// -----------------------------------------------------------------------------------------------------
+
+		if (r && depth > x->__depth)
+		{
+			std::cout << " /";
+			r = false;
+		}
+
+		if (x->__node == x->__node->__parent_->__right_)
+		{
+			r = true;
+			depth = x->__depth;
+		}
+		std::cout << "\n";
+	}	
+}	
+
+	
