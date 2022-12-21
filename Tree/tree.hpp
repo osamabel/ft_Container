@@ -6,7 +6,7 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/07 14:28:20 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/12/16 23:40:49 by obelkhad         ###   ########.fr       */
+/*   Updated: 2022/12/21 18:42:11 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@ namespace ft
 		pointer 			__left_;
 		pointer				__parent_;
 		bool 				__is_black_;
+		bool 				__passed_;
 	};
 
 	template <class T, class Compare, class Allocator>
@@ -50,7 +51,6 @@ namespace ft
 		typedef __tree_const_iterator<value_type, node_pointer, difference_type>		const_iterator;
 
 		typedef std::allocator<__tree_node<value_type> >						node_allocator;
-  
 
 	private:
     	node_pointer 	__begin_node_;
@@ -62,16 +62,18 @@ namespace ft
 
 	public:
 		//------------------------------------------------------ [ Costructors ]
-		__tree(const value_compare &comp, const allocator_type &alloc, const node_allocator &n_alloc = node_allocator())
-		: __size(0), __comp(comp), __alloc(alloc) , __node_alloc(n_alloc)
+		// __tree(const value_compare &comp, const allocator_type &alloc, const node_allocator &n_alloc = node_allocator())
+		__tree(const value_compare &comp, const allocator_type &alloc)
+		: __size(0), __comp(comp), __alloc(alloc) , __node_alloc(alloc)
 		{
 			__begin_node_ = __end_node_ = __node_alloc.allocate(1);
 			__begin_node_->__parent_ = __begin_node_->__right_ = __begin_node_->__left_ = nullptr; 
+			__end_node_->__passed_ = false;
 		}
 		~__tree()
 		{
-			clear();
-			__node_alloc.deallocate(__end_node_, 1);
+			// clear();
+			// __node_alloc.deallocate(__end_node_, 1);
 		}
 
 
@@ -159,18 +161,18 @@ namespace ft
 
 		//			========================================| __insert_node_at |
 
-		void __insert_node_at(node_pointer &__parent, node_pointer &__child, char __x)
+		void __insert_node_at(node_pointer __parent, node_pointer __child, char __x)
 		{
+
 			if (__x == 'l')
 				__parent->__left_ = __child;
 			else if (__x == 'r')
 				__parent->__right_ = __child;
 			__child->__parent_ = __parent;
-
 			if (__begin_node_->__left_)
 				__begin_node_ = __begin_node_->__left_;
 
-			// __tree_balance_after_insert(__end_node_->__left_, __child);
+			__tree_balance_after_insert(__end_node_->__left_, __child);
 			++__size;
 		}
 		//======================================================================
@@ -186,6 +188,7 @@ namespace ft
 			__n_ptr->__left_ = nullptr;
 			__n_ptr->__parent_ = nullptr;
 			__n_ptr->__is_black_ = false;
+			__n_ptr->__passed_ = true;
 			return __n_ptr;
 		}
 		//======================================================================
@@ -226,68 +229,111 @@ namespace ft
 		//======================================================================	
 		
 		
+		//			=========================================| __left_rotation |
+		void	__left_rotation(node_pointer __node)
+		{
+			node_pointer child = __node->__right_;
+			__node->__right_ = child->__left_;
+			if (child->__left_)
+				child->__left_->__parent_ = __node;
+			child->__parent_ = __node->__parent_;
+			if(ft::__tree_is_left_child(__node))
+				__node->__parent_->__left_ = child;
+			else
+				__node->__parent_->__right_ = child;
+			child->__left_ = __node;
+			__node->__parent_ = child;
+		}	
+		
+		//======================================================================
+
+
+		//			========================================| __right_rotation |
+		void	__right_rotation(node_pointer __node)
+		{
+			node_pointer child = __node->__left_;
+			__node->__left_ = child->__right_;
+			if (child->__right_)
+				child->__right_->__parent_ = __node;
+			child->__parent_ = __node->__parent_;
+			if (ft::__tree_is_left_child(__node))
+				__node->__parent_->__left_ = child;
+			else
+				__node->__parent_->__right_ = child;
+			child->__right_ = __node;
+			__node->__parent_ = child;
+		}
+		//======================================================================	
+
 		//			=============================| __tree_balance_after_insert |
 
-		// void __tree_balance_after_insert(node_pointer &__root, node_pointer __x)
-		// {
-		// 	__x->__is_black_ = __x == __root;
-		// 	while (__x != __root && !__x->__parent_unsafe()->__is_black_)
-		// 	{
-		// 		// __x->__parent_ != __root because __x->__parent_->__is_black == false
-		// 		if (__tree_is_left_child(__x->__parent_unsafe()))
-		// 		{
-		// 			_NodePtr __y = __x->__parent_unsafe()->__parent_unsafe()->__right_;
-		// 			if (__y != nullptr && !__y->__is_black_)
-		// 			{
-		// 				__x = __x->__parent_unsafe();
-		// 				__x->__is_black_ = true;
-		// 				__x = __x->__parent_unsafe();
-		// 				__x->__is_black_ = __x == __root;
-		// 				__y->__is_black_ = true;
-		// 			}
-		// 			else
-		// 			{
-		// 				if (!__tree_is_left_child(__x))
-		// 				{
-		// 					__x = __x->__parent_unsafe();
-		// 					__tree_left_rotate(__x);
-		// 				}
-		// 				__x = __x->__parent_unsafe();
-		// 				__x->__is_black_ = true;
-		// 				__x = __x->__parent_unsafe();
-		// 				__x->__is_black_ = false;
-		// 				__tree_right_rotate(__x);
-		// 				break;
-		// 			}
-		// 		}
-		// 		else
-		// 		{
-		// 			_NodePtr __y = __x->__parent_unsafe()->__parent_->__left_;
-		// 			if (__y != nullptr && !__y->__is_black_)
-		// 			{
-		// 				__x = __x->__parent_unsafe();
-		// 				__x->__is_black_ = true;
-		// 				__x = __x->__parent_unsafe();
-		// 				__x->__is_black_ = __x == __root;
-		// 				__y->__is_black_ = true;
-		// 			}
-		// 			else
-		// 			{
-		// 				if (__tree_is_left_child(__x))
-		// 				{
-		// 					__x = __x->__parent_unsafe();
-		// 					__tree_right_rotate(__x);
-		// 				}
-		// 				__x = __x->__parent_unsafe();
-		// 				__x->__is_black_ = true;
-		// 				__x = __x->__parent_unsafe();
-		// 				__x->__is_black_ = false;
-		// 				__tree_left_rotate(__x);
-		// 				break;
-		// 			}
-		// 		}
-		// 	}
-		// }
+		void __tree_balance_after_insert(node_pointer &__root, node_pointer __x)
+		{
+			if (__x == __root)
+				__x->__is_black_ = true;
+			while (__x != __root && __x->__parent_->__is_black_ == false)
+			{
+				node_pointer __uncle;
+				if (ft::__tree_is_left_child(__x->__parent_))
+				{
+					__uncle = __x->__parent_->__parent_->__right_;
+					if (__uncle && __uncle->__is_black_ == false)
+					{
+						__x = __x->__parent_;
+						__x->__is_black_ = true;
+						__x = __x->__parent_;
+						if (__x == __root)
+							__x->__is_black_ = true;
+						else
+							__x->__is_black_ = false;
+						__uncle->__is_black_ = true;
+					}
+					else
+					{
+						if (!ft::__tree_is_left_child(__x))
+						{
+							__x = __x->__parent_;
+							__left_rotation(__x);
+						}
+						__x = __x->__parent_;
+						__x->__is_black_ = true;
+						__x = __x->__parent_;
+						__x->__is_black_ = false;
+						__right_rotation(__x);
+						break;
+					}
+				}
+				else
+				{
+					__uncle = __x->__parent_->__parent_->__left_;
+					if (__uncle && __uncle->__is_black_ == false)
+					{
+						__x = __x->__parent_;
+						__x->__is_black_ = true;
+						__x = __x->__parent_;
+						if (__x == __root)
+							__x->__is_black_ = true;
+						else
+							__x->__is_black_ = false;
+						__uncle->__is_black_ = true;
+					}
+					else
+					{
+						if (ft::__tree_is_left_child(__x))
+						{
+							__x = __x->__parent_;
+							__right_rotation(__x);
+						}
+						__x = __x->__parent_;
+						__x->__is_black_ = true;
+						__x = __x->__parent_;
+						__x->__is_black_ = false;
+						__left_rotation(__x);
+						break;
+					}
+				}				
+			}
+		}
 		//======================================================================	
 	};
 }
