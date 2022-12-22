@@ -6,7 +6,7 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/07 14:28:20 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/12/21 18:42:11 by obelkhad         ###   ########.fr       */
+/*   Updated: 2022/12/22 09:20:24 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,7 +86,10 @@ namespace ft
         {
             return (__comp);
         }
-		//--------------------------------------------------------- [ iterator ]
+
+		//+--------------------------------------------------------------------+
+		//|                           [ Iterators ]                            |
+		//+--------------------------------------------------------------------+
 		iterator begin()
 		{
 			return iterator(__begin_node_);
@@ -102,6 +105,24 @@ namespace ft
     	const_iterator end() const
 		{
 			return const_iterator(__end_node_);
+		}
+
+		//+--------------------------------------------------------------------+
+		//|                            [ Capacity ]                            |
+		//+--------------------------------------------------------------------+
+		bool empty() const
+		{
+			return (size == 0);
+		}
+		size_type size() const
+		{
+			return size;
+		}
+		size_type max_size() const
+		{
+			return std::min<size_type>(
+				__node_alloc.max_size(), numeric_limits<difference_type >::max();
+			)
 		}
 
 		//------------------------------------------------------------ [ clear ]

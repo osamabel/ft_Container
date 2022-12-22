@@ -6,7 +6,7 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/02 18:34:31 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/12/16 19:16:55 by obelkhad         ###   ########.fr       */
+/*   Updated: 2022/12/22 09:20:41 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,13 +58,13 @@ public:
 		}
 	};
 private:
-	typedef __tree<value_type, value_compare, allocator_type>  				 	__base;
-	__base _tree_;
+	typedef __tree<value_type, value_compare, allocator_type>  				 	__tree_base_;
+	__tree_base_ __base_;
 public:
-	typedef typename __tree<value_type, value_compare, allocator_type>::node_pointer   	node_pointer;
-	typedef typename __tree_node<value_type>::node_value_type							node;
-	typedef typename __base::iterator								iterator;
-	typedef typename __base::const_iterator							const_iterator;
+	// typedef typename __tree_node<value_type>::node_value_type						node;
+	typedef typename __tree_base_::node_pointer   										node_pointer;
+	typedef typename __tree_base_::iterator												iterator;
+	typedef typename __tree_base_::const_iterator										const_iterator;
 
 	//+------------------------------------------------------------------------+
 	//|                                                                        |
@@ -76,13 +76,13 @@ public:
 		//+--------------------------------------------------------------------+
 
 		explicit map(const key_compare &comp = key_compare(), const allocator_type &alloc = allocator_type())
-		: _tree_(value_compare(comp), alloc)
+		: __base_(value_compare(comp), alloc)
 		{}
 
 		// template <class InputIterator>
 		// map (InputIterator first, InputIterator last, const key_compare& comp = key_compare(), const allocator_type &alloc = allocator_type());
     	
-		map(const map &__x) : _tree_(__x._tree_)
+		map(const map &__x) : __base_(__x.__base_)
         {
             insert(__x.begin(), __x.end());
         }
@@ -90,8 +90,8 @@ public:
  		map &operator = (const map &__x)
         {
             if (this != &__x) {
-                _tree_.clear();
-                _tree_.value_comp() = __x._tree_.value_comp();
+                __base_.clear();
+                __base_.value_comp() = __x.__base_.value_comp();
                 insert(__x.begin(), __x.end());
             }
             return *this;
@@ -102,7 +102,7 @@ public:
 
 		node_pointer __root() const
         {
-			return _tree_.__root();
+			return __base_.__root();
 		}
 
 		//+--------------------------------------------------------------------+
@@ -110,24 +110,36 @@ public:
 		//+--------------------------------------------------------------------+
 		iterator begin()
 		{
-			return _tree_.begin();
+			return __base_.begin();
 		}
 		iterator end()
 		{
-			return _tree_.end();
+			return __base_.end();
 		}
 		const_iterator begin() const 
 		{
-			return _tree_.begin();
+			return __base_.begin();
 		}
 		const_iterator end() const 
 		{
-			return _tree_.end();
+			return __base_.end();
 		}
 
 		//+--------------------------------------------------------------------+
 		//|                            [ Capacity ]                            |
 		//+--------------------------------------------------------------------+
+		bool empty() const
+		{
+			return __base_.empty();
+		}
+		size_type size() const
+		{
+			return __base_.size();
+		}
+		size_type max_size() const
+		{
+			return __base_.max_size();
+		}
 		//+--------------------------------------------------------------------+
 		//|                             [ Access ]                             |
 		//+--------------------------------------------------------------------+
@@ -136,7 +148,7 @@ public:
 		//+--------------------------------------------------------------------+
 		std::pair<iterator, bool> insert(const value_type &val)
 		{
-			return (_tree_.__insert_unique(val));
+			return (__base_.__insert_unique(val));
 		}
 		//+--------------------------------------------------------------------+
 		//|                            [ Observers ]                           |
