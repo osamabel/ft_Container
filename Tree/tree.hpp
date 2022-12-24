@@ -6,7 +6,7 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/07 14:28:20 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/12/22 09:20:24 by obelkhad         ###   ########.fr       */
+/*   Updated: 2022/12/24 15:32:23 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,8 +72,8 @@ namespace ft
 		}
 		~__tree()
 		{
-			// clear();
-			// __node_alloc.deallocate(__end_node_, 1);
+			clear();
+			__node_alloc.deallocate(__end_node_, 1);
 		}
 
 
@@ -82,7 +82,7 @@ namespace ft
         {
 			return __end_node_->__left_;
 		}
-		value_compare &value_comp()
+		const value_compare &value_comp() const
         {
             return (__comp);
         }
@@ -112,18 +112,19 @@ namespace ft
 		//+--------------------------------------------------------------------+
 		bool empty() const
 		{
-			return (size == 0);
+			return (__size == 0);
 		}
 		size_type size() const
 		{
-			return size;
+			return __size;
 		}
 		size_type max_size() const
 		{
 			return std::min<size_type>(
-				__node_alloc.max_size(), numeric_limits<difference_type >::max();
-			)
+				__node_alloc.max_size(), std::numeric_limits<difference_type >::max()
+			);
 		}
+
 
 		//------------------------------------------------------------ [ clear ]
 		void clear()
@@ -150,9 +151,9 @@ namespace ft
 		{
 			node_pointer __parent = __root();
 			char __x = __find_where(__parent, __v);
-			node_pointer __child = nullptr;
+			node_pointer __child = __parent;
 			bool __inserted = false;
-			if (__parent)
+			if (__x != '0')
 			{
 				__child = __construct_node(__v);
 				__insert_node_at(__parent, __child, __x);
@@ -160,7 +161,99 @@ namespace ft
 			}
 			return std::pair<iterator, bool>(iterator(__child), __inserted);
 		}
+
+		iterator __insert_unique(node_pointer position, const value_type &__v)
+		{
+			node_pointer __parent = __root();
+			char __x = __find_where(position, __parent, __v);
+			node_pointer __child = __parent;
+			bool __inserted = false;
+			if (__x != '0')
+			{
+				__child = __construct_node(__v);
+				__insert_node_at(__parent, __child, __x);
+				__inserted = true;
+			}
+			return iterator(__child);
+		}
+
+
+
+		//----------------------------------------------------------- [ public ]
+		//			=============================================| __find_where |
+	public:
+		char __find_where(node_pointer &__parent, const value_type &__v)
+		{
+			if (__parent != nullptr)
+			{
+				while (true)
+				{
+					if (value_comp()(__v, __parent->__value_))
+					{
+						if (__parent->__left_ == nullptr)
+							return 'l';
+						else
+							__parent = __parent->__left_;
+					}
+					else if (value_comp()(__parent->__value_, __v))
+					{
+						if (__parent->__right_ == nullptr)
+							return 'r';
+						else
+							__parent = __parent->__right_;
+					}
+					else
+						return '0';
+				}			
+			}
+			__parent = __end_node_;
+			return 'l';
+		}
 		
+		char __find_where(node_pointer __hint, node_pointer &__parent, const value_type &__v)
+		{
+			if (__parent != nullptr)
+			{
+				node_pointer __ptr = __hint;
+				if (__hint == end().__ptr_)
+				{
+					__ptr = ft::__tree_prev_iter(__hint);
+					if (value_comp()(__ptr->__value_, __v))
+						return (__parent = __ptr, 'r');
+				}
+				else if (value_comp()(__v, __hint->__value_))
+				{
+					if (__hint == begin().__ptr_)
+						return (__parent = __hint, 'l');
+					else
+					{
+						__ptr = ft::__tree_prev_iter(__hint);
+						if (value_comp()(__ptr->__value_, __v))
+						{
+							if (__hint->__left_ == nullptr)
+								return (__parent = __hint, 'l');
+							return (__parent = __ptr, 'r');
+						}
+					}
+				}
+				else if (value_comp()(__hint->__value_, __v))
+				{
+					__ptr = ft::__tree_next_iter(__hint);
+					if (__ptr == end().__ptr_)
+						return (__parent = __hint, 'r');
+					else if (value_comp()(__v, __ptr->__value_))
+					{
+						if (__hint->__right_ == nullptr)
+							return (__parent = __hint, 'r');
+						return (__parent = __ptr, 'l');
+					}
+				}
+				return __find_where(__parent, __v);
+			}
+			__parent = __end_node_;
+			return 'l';
+		}
+		//======================================================================	
 
 		//---------------------------------------------------------- [ private ]
 	private:
@@ -213,42 +306,7 @@ namespace ft
 			return __n_ptr;
 		}
 		//======================================================================
-
-
-		//			=============================================| __find_where |
-
-		char __find_where(node_pointer &__parent, const value_type &__v)
-		{
-			if (__parent != nullptr)
-			{
-				while (true)
-				{
-					if (value_comp()(__v, __parent->__value_))
-					{
-						if (__parent->__left_ == nullptr)
-							return 'l';
-						else
-							__parent = __parent->__left_;
-					}
-					else if (value_comp()(__parent->__value_, __v))
-					{
-						if (__parent->__right_ == nullptr)
-							return 'r';
-						else
-							__parent = __parent->__right_;
-					}
-					else
-					{
-						__parent = nullptr;
-						return '0';
-					}
-				}			
-			}
-			__parent = __end_node_;
-			return 'l';
-		}
-		//======================================================================	
-		
+	
 		
 		//			=========================================| __left_rotation |
 		void	__left_rotation(node_pointer __node)
