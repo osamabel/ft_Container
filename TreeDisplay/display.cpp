@@ -6,7 +6,7 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/16 15:36:05 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/12/21 18:43:11 by obelkhad         ###   ########.fr       */
+/*   Updated: 2022/12/25 12:08:16 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,6 @@
 
 
 typedef ft::map<int, char>::node_pointer   			node_pointer;
-typedef ft::map<int, char>::node					node;
 
 typedef struct s_data{
 
