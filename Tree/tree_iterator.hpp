@@ -6,7 +6,7 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/07 17:16:32 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/12/15 18:20:09 by obelkhad         ###   ########.fr       */
+/*   Updated: 2022/12/25 12:39:07 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,8 +41,8 @@ namespace ft
 	inline Ptr __tree_next_iter(Ptr __x)
 	{
 		if (__x->__right_ != nullptr)
-			return __tree_min(__x->__right_);
-		while (!__tree_is_left_child(__x))
+			return ft::__tree_min(__x->__right_);
+		while (!ft::__tree_is_left_child(__x))
 			__x = __x->__parent_;
 		return __x->__parent_;
 	}
@@ -51,9 +51,9 @@ namespace ft
 	inline Ptr __tree_prev_iter(Ptr __x)
 	{
 		if (__x->__left_ != nullptr)
-			return __tree_max(__x->__left_);
+			return ft::__tree_max(__x->__left_);
 		Ptr __y = __x;
-		while (__tree_is_left_child(__y))
+		while (ft::__tree_is_left_child(__y))
 			__y = __y->__parent_;
 		return __y->__parent_;
 	}
@@ -136,13 +136,12 @@ namespace ft
 		typedef DiffType														difference_type;
 		typedef const value_type&												reference;
 		typedef const value_type*												pointer;
+		typedef __tree_iterator<value_type, pointer, difference_type> 			__non_const_iterator;
 	
+	public:
 		//constractor
-		__tree_const_iterator() : __ptr_(nullptr)
-    	{}
-private:
-	typedef __tree_iterator<value_type, pointer, difference_type> 				__non_const_iterator;
-		__tree_const_iterator(__non_const_iterator __p) : __ptr_(__p.__ptr_)
+		__tree_const_iterator() : __ptr_(nullptr){}
+		__tree_const_iterator(__non_const_iterator &__p) : __ptr_(__p.__ptr_)
 		{}
 
 		reference operator * () const
