@@ -6,7 +6,7 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/02 18:34:31 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/12/24 16:25:16 by obelkhad         ###   ########.fr       */
+/*   Updated: 2022/12/25 14:37:33 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ public:
 		}
 	};
 private:
-	typedef __tree<value_type, value_compare, allocator_type>  				 	__tree_base_;
+	typedef ft::__tree<value_type, value_compare, allocator_type>  				 	__tree_base_;
 	__tree_base_ __base_;
 public:
 	typedef typename __tree_base_::node_pointer   								node_pointer;
@@ -207,10 +207,50 @@ public:
 		//+--------------------------------------------------------------------+
 		//|                           [ Operations ]                           |
 		//+--------------------------------------------------------------------+
-		// iterator find (const key_type &__k)
-		// {}
-		// const_iterator find (const key_type& k) const
-		// {}
+		iterator find (const key_type &__k)
+		{
+			return __base_.__find(value_type(__k, mapped_type()));
+		}
+		const_iterator find (const key_type &__k) const
+		{
+			return find(__k);
+		}
+		size_type count (const key_type &__k) const
+		{
+			return __base_.__count(value_type(__k, mapped_type()));
+		}
+      	iterator lower_bound (const key_type &__k)
+		{
+			return __base_.__lower_bound(value_type(__k, mapped_type()), __root());
+		}
+		const_iterator lower_bound (const key_type &__k) const
+		{
+			return __base_.__lower_bound(value_type(__k, mapped_type()) , __root());
+		}
+      	iterator upper_bound (const key_type &__k)
+		{
+			return __base_.__upper_bound(value_type(__k, mapped_type()), __root());
+		}
+		const_iterator upper_bound (const key_type &__k) const
+		{
+			return __base_.__upper_bound(value_type(__k, mapped_type()), __root());
+		}
+		std::pair<iterator,iterator> equal_range (const key_type &__k)
+		{
+			typedef std::pair<iterator,iterator> __x;
+			if (__root() == nullptr)
+				return __x(end(), end());
+			return __x(lower_bound(__k), upper_bound(__k));
+		}
+		std::pair<const_iterator,const_iterator> equal_range (const key_type &__k) const
+		{
+			typedef std::pair<const_iterator,const_iterator> __x;
+			if (__root() == nullptr)
+				return __x(end(), end());
+			return __x(lower_bound(__k), upper_bound(__k));
+		}
+
+
 
 };
 
