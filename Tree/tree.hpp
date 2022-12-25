@@ -6,7 +6,7 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/07 14:28:20 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/12/24 15:32:23 by obelkhad         ###   ########.fr       */
+/*   Updated: 2022/12/25 14:13:53 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,8 +47,8 @@ namespace ft
 		typedef typename __tree_node<value_type>::node_value_type				node_value;
 		typedef typename __tree_node<value_type>::pointer						node_pointer;
 
-    	typedef __tree_iterator<value_type, node_pointer, difference_type>				iterator;
-		typedef __tree_const_iterator<value_type, node_pointer, difference_type>		const_iterator;
+		typedef ft::__tree_iterator<value_type, node_pointer, difference_type>				iterator;
+		typedef ft::__tree_const_iterator<value_type, node_pointer, difference_type>		const_iterator;
 
 		typedef std::allocator<__tree_node<value_type> >						node_allocator;
 
@@ -176,8 +176,93 @@ namespace ft
 			}
 			return iterator(__child);
 		}
+		//---------------------------------------------------- [ __lower_bound ]
+		iterator __lower_bound(const value_type &__v, node_pointer __p)
+		{
+			node_pointer __r = __end_node_;
+			while(__p)
+			{
+				if (!value_comp()(__p->__value_, __v))   //__p.value >= __v
+				{
+					__r = __p;
+					__p = __p->__left_;
+				}
+				else									//__p.value < __v	
+					__p = __p->__right_;
+			}
+			return iterator(__r);
+		}
+		const_iterator __lower_bound(const value_type &__v, node_pointer __p) const
+		{
+			node_pointer __r = __end_node_;
+			while(__p)
+			{
+				if (!value_comp()(__p->__value_, __v))   //__p.value >= __v
+				{
+					__r = __p;
+					__p = __p->__left_;
+				}
+				else									//__p.value < __v	
+					__p = __p->__right_;
+			}
+			return const_iterator(__r);
+		}
 
+		//---------------------------------------------------- [ __lower_bound ]
+		iterator __upper_bound(const value_type &__v, node_pointer __p)
+		{
+			node_pointer __r = __end_node_;
+			while(__p)
+			{
+				if (value_comp()(__v, __p->__value_))
+				{
+					__r = __p;
+					__p = __p->__left_;
+				}
+				else
+					__p = __p->__right_;
+			}
+			return iterator(__r);
+		}
+		const_iterator __upper_bound(const value_type &__v, node_pointer __p) const
+		{
+			node_pointer __r = __end_node_;
+			while(__p)
+			{
+				if (value_comp()(__p->__value_, __v))
+					__p = __p->__right_;
+				else
+				{
+					__p = __p->__right_;
+					__r = __p;
+				}
+			}
+			return const_iterator(__r);
+		}
 
+		//------------------------------------------------------------ [ __find ]
+		iterator __find(const value_type &__v)
+		{
+			iterator __p = __lower_bound(__v, __root());
+			if(__p != end() && !value_comp()(__v, *__p))
+				return __p;
+			return end();
+		}
+		//---------------------------------------------------------- [ __count ]
+		size_type __count(const value_type &__v) const
+		{
+			node_pointer __p = __root();
+			while (__p)
+			{
+				if (value_comp()(__v, __p->__value_))
+					__p = __p->__left_;
+				else if (value_comp()(__p->__value_, __v))
+					__p = __p->__right_;
+				else
+					return 1;
+			}
+			return 0;
+		}
 
 		//----------------------------------------------------------- [ public ]
 		//			=============================================| __find_where |
