@@ -6,7 +6,7 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/16 15:36:05 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/12/25 12:08:16 by obelkhad         ###   ########.fr       */
+/*   Updated: 2023/01/02 14:35:50 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,39 +17,19 @@
 #include <iomanip>
 #include <locale> 
 #include "../Containers/ft_map.hpp"
+#include "../Containers/ft_set.hpp"
 #include "../Tree/tree_iterator.hpp"
 
-
-typedef ft::map<int, char>::node_pointer   			node_pointer;
-
-typedef struct s_data{
-
-	node_pointer	__node;				//	node
-	char			__direction;		//	left or right
-	int				__depth;			//	hight of this node
-}	t_data;
-
-
-void getInfo(node_pointer node, std::vector<t_data> &data)
+template<class T1, class T>
+void getInfo(T1 node, std::vector<T> &data)
 {
 	static int i;
-	t_data info;
 
 	if (node)
 	{
-
-		info.__node = node;
-		if (node->__parent_->__parent_ == nullptr)
-			info.__direction = 'r';
-		else if (ft::__tree_is_left_child(node))
-			info.__direction = '<';
-		else
-			info.__direction = '>';
-		info.__depth = ++i;
-		data.push_back(info);
-
+		node->__depth_ = ++i;
+		data.push_back(node);
 		node->__passed_ = false;
-		
 		if (node->__left_)
 			getInfo(node->__left_, data);
 		else if (node->__right_)
@@ -67,61 +47,153 @@ void getInfo(node_pointer node, std::vector<t_data> &data)
 	}
 }
 
-bool compareByfirst(const t_data &a, const t_data &b)
+template<class T>
+bool __comp_map(T &a, T &b)
 {
-	return a.__node->__value_.first > b.__node->__value_.first;
+	return (a)->__value_.first > (b)->__value_.first;
 }
 
-void display(ft::map<int, char> &__m)
+template<class T1, class T2>
+void display(ft::map<T1, T2> &__m)
 {
 
-	std::vector<t_data> data;
-	node_pointer root = __m.__root();
+	typedef typename ft::map<T1, T2>::node_pointer				node_pointer;
 
-	getInfo(root, data);
-	sort(data.begin(), data.end(), compareByfirst);
+	std::vector<node_pointer> data;
+
+	getInfo(__m.__root(), data);
+	
+	sort(data.begin(), data.end(), __comp_map<node_pointer>);
+
 	bool r = false;
 	int depth = 0;
-	for (std::vector<t_data>::iterator x = data.begin(); x != data.end(); x++)
+		
+	for (typename std::vector<node_pointer>::iterator x = data.begin(); x != data.end(); x++)
 	{
-		for (int i = 0; i <= x->__depth + 5; ++i)
+		for (int i = 0; i <= (*x)->__depth_ + 5; ++i)
 		{
-			if (r && i == depth - 1 && depth < x->__depth)
+			if (r && i == depth - 1 && depth < (*x)->__depth_)
 			{
 				std::cout << "/";
 				r = false;
 			}
-			if (i < x->__depth - 1)
+			if (i < (*x)->__depth_ - 1)
 				std::cout << "\t\t";
 		}
 				
-		if (x->__node == x->__node->__parent_->__right_)
+		if ((*x) == (*x)->__parent_->__right_)
 		{
 			std::cout << " ";
 		}
-		if (x->__node == x->__node->__parent_->__left_ && x->__node->__parent_->__parent_)
+		if ((*x) == (*x)->__parent_->__left_ && (*x)->__parent_->__parent_)
 			std::cout << "\\" ;
 
 
 		// ----------------------------------------------------------------------------- print value
 		std::cout << std::setfill('_') << std::right;
-		if (x->__node->__is_black_)
-			std::cout << std::setw(14) << std::to_string(x->__node->__value_.first);
+		if ((*x)->__is_black_)
+			std::cout << std::setw(14) << (*x)->__value_.first;
 		else
-			std::cout << "\033[1;31m" << std::setw(14) << std::to_string(x->__node->__value_.first) << "\033[0m";
+			std::cout << "\033[1;31m" << std::setw(14) << (*x)->__value_.first << "\033[0m";
 		// -----------------------------------------------------------------------------------------------------
 
-		if (r && depth > x->__depth)
+		if (r && depth > (*x)->__depth_)
 		{
 			std::cout << " /";
 			r = false;
 		}
 
-		if (x->__node == x->__node->__parent_->__right_)
+		if ((*x) == (*x)->__parent_->__right_)
 		{
 			r = true;
-			depth = x->__depth;
+			depth = (*x)->__depth_;
+		}
+		std::cout << "\n";
+	}	
+}
+
+template<class T>
+bool __comp_set(T &a, T &b)
+{
+	return (a)->__value_ > (b)->__value_;
+}
+
+template<class T1>
+void display(ft::set<T1> &__m)
+{
+
+	typedef typename ft::set<T1>::node_pointer					node_pointer;
+
+	std::vector<node_pointer> data;
+
+	getInfo(__m.__root(), data);
+	
+	sort(data.begin(), data.end(), __comp_set<node_pointer>);
+
+	bool r = false;
+	int depth = 0;
+		
+	for (typename std::vector<node_pointer>::iterator x = data.begin(); x != data.end(); x++)
+	{
+		for (int i = 0; i <= (*x)->__depth_ + 5; ++i)
+		{
+			if (r && i == depth - 1 && depth < (*x)->__depth_)
+			{
+				std::cout << "/";
+				r = false;
+			}
+			if (i < (*x)->__depth_ - 1)
+				std::cout << "\t\t";
+		}
+				
+		if ((*x) == (*x)->__parent_->__right_)
+		{
+			std::cout << " ";
+		}
+		if ((*x) == (*x)->__parent_->__left_ && (*x)->__parent_->__parent_)
+			std::cout << "\\" ;
+
+
+		// ----------------------------------------------------------------------------- print value
+		std::cout << std::setfill('_') << std::right;
+		if ((*x)->__is_black_)
+			std::cout << std::setw(14) << (*x)->__value_;
+		else
+			std::cout << "\033[1;31m" << std::setw(14) << (*x)->__value_ << "\033[0m";
+		// -----------------------------------------------------------------------------------------------------
+
+		if (r && depth > (*x)->__depth_)
+		{
+			std::cout << " /";
+			r = false;
+		}
+
+		if ((*x) == (*x)->__parent_->__right_)
+		{
+			r = true;
+			depth = (*x)->__depth_;
 		}
 		std::cout << "\n";
 	}	
 }	
+
+
+// const bd = document.querySelector("body")
+// const inpt = document.getElementById("value");
+
+// var i = 0;
+// const Interval = setInterval(inserting, 500);
+// function inserting()
+// {
+// 	inpt.value = i;
+// 	insert();
+// 	i++;
+// }
+// function stoptime()
+// {
+// 	clearInterval(Interval)
+// }
+
+// bd.addEventListener("click", stoptime);
+
+// https://yongdanielliang.github.io/animation/web/RBTree.html
