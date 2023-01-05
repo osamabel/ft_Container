@@ -6,7 +6,7 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/07 17:16:32 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/12/25 12:39:07 by obelkhad         ###   ########.fr       */
+/*   Updated: 2023/01/05 10:26:23 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 namespace ft
 {
+
 	template <class Ptr>
 	inline bool __tree_is_left_child(Ptr __x)
 	{
@@ -35,6 +36,22 @@ namespace ft
 		while (__x->__left_ != nullptr)
 			__x = __x->__left_;
 		return __x;
+	}
+
+	template <class Ptr>
+	inline Ptr __tree_predecessor(Ptr __x)
+	{
+		if (__x->__right_ != nullptr)
+			return ft::__tree_min(__x->__right_);
+		return nullptr;
+	}
+
+	template <class Ptr>
+	inline Ptr __tree_successor(Ptr __x)
+	{
+		if (__x->__right_ != nullptr)
+			return ft::__tree_min(__x->__right_);
+		return nullptr;
 	}
 	
 	template <class Ptr>
@@ -78,7 +95,7 @@ namespace ft
 
 		pointer operator -> () const
 		{
-			return &__ptr_->__value_;
+			return std::addressof(operator*());
 		}
 
 		__tree_iterator &operator ++ () 
@@ -136,12 +153,12 @@ namespace ft
 		typedef DiffType														difference_type;
 		typedef const value_type&												reference;
 		typedef const value_type*												pointer;
-		typedef __tree_iterator<value_type, pointer, difference_type> 			__non_const_iterator;
+		typedef __tree_iterator<value_type, NodePtr, difference_type> 			__non_const_iterator;
 	
 	public:
 		//constractor
 		__tree_const_iterator() : __ptr_(nullptr){}
-		__tree_const_iterator(__non_const_iterator &__p) : __ptr_(__p.__ptr_)
+		__tree_const_iterator(const __non_const_iterator &__p) : __ptr_(__p.__ptr_)
 		{}
 
 		reference operator * () const
@@ -151,7 +168,7 @@ namespace ft
 
 		pointer operator -> () const
 		{
-			return &__ptr_->__value_;
+			return std::addressof(operator*());
 		}
 
 		__tree_const_iterator &operator ++ ()
