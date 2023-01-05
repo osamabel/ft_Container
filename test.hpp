@@ -6,7 +6,7 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/27 19:29:44 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/12/02 17:45:12 by obelkhad         ###   ########.fr       */
+/*   Updated: 2023/01/01 13:23:34 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,21 @@
 #include <list>
 #include <iostream>
 #include <string>
+#include <ctime>
+#define COUNT 500000
+
+struct Buffer
+{
+    long id;
+    int ibuff[42];
+    char cbuff[1337];
+    Buffer(int id) : id(id) {}
+    bool operator!=(Buffer rhs)
+    {
+        return (id != rhs.id);
+    }
+};
+
 
 void v_test0();
 void v_test1();
@@ -48,17 +63,9 @@ void stk_test1();
 void stk_test2();
 void stk_test3();
 void stk_test4();
-// void stk_test5();
-// void stk_test6();
-// void stk_test7();
-// void stk_test8();
-// void stk_test9();
-// void stk_test10();
-// void stk_test11();
-// void stk_test12();
-// void stk_test13();
-// void stk_test14();
-// void stk_test15();
-// void stk_test16();
-// void stk_test17();
+
+void map_test0();
+
+void set_test0();
+
 #endif
