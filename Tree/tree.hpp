@@ -6,7 +6,7 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/07 14:28:20 by obelkhad          #+#    #+#             */
-/*   Updated: 2023/01/05 10:42:42 by obelkhad         ###   ########.fr       */
+/*   Updated: 2023/01/05 10:59:13 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,10 +119,10 @@ namespace ft
 		//+--------------------------------------------------------------------+
 		//|                           [ Iterators ]                            |
 		//+--------------------------------------------------------------------+
-		iterator begin() const
+		iterator begin()
 		{ return iterator(__begin_node_); }
 		
-		iterator end() const
+		iterator end()
 		{ return iterator(__end_node_); }
 		
 		const_iterator begin() const
@@ -276,9 +276,9 @@ namespace ft
 		const_iterator __find(const value_type &__v) const
 		{
 			const_iterator __p = __lower_bound(__v, __root());
-			if(__p != cend() && !value_comp()(__v, *__p))
+			if(__p != end() && !value_comp()(__v, *__p))
 				return __p;
-			return cend();
+			return end();
 		}
 		//---------------------------------------------------------- [ __count ]
 		size_type __count(const value_type &__v) const
