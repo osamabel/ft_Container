@@ -6,7 +6,7 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/12 16:08:49 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/12/01 12:34:38 by obelkhad         ###   ########.fr       */
+/*   Updated: 2023/01/04 17:19:32 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,18 +16,14 @@
 #include "../type_traits/type_traits.hpp"
 namespace ft
 {
-	template<class Category, 
-			class Tp, 
-			class Distance = ptrdiff_t, 
-			class Pointer = Tp*, 
-			class Reference = Tp&>
+	template<class Tp, class Category>
 	struct __iterator
 	{
 		typedef Tp        	value_type;
-		typedef Distance  	difference_type;
-		typedef Pointer   	pointer;
-		typedef Reference 	reference;
-		typedef Category  	iterator_category;
+		typedef ptrdiff_t  	difference_type;
+		typedef Tp*		   	pointer;
+		typedef Tp& 		reference;
+		typedef Category	iterator_category;
 	};
 
 	template <class __iterator>
@@ -44,12 +40,20 @@ namespace ft
 	struct iterator_traits<T*>
 	{
 		typedef ptrdiff_t										difference_type;
-		typedef typename remove_cv<T>::type						value_type;
+		typedef T												value_type;
 		typedef T*												pointer;
 		typedef T&												reference;
 		typedef std::random_access_iterator_tag					iterator_category;
-
 	};
-
+	
+	template <class T> 
+	struct iterator_traits<const T*>
+	{
+		typedef ptrdiff_t										difference_type;
+		typedef T												value_type;
+		typedef const T*										pointer;
+		typedef const T&										reference;
+		typedef std::random_access_iterator_tag					iterator_category;
+	};
 }	//namespace ft
 #endif
