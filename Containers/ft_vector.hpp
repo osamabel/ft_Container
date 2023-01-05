@@ -6,7 +6,7 @@
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/03 08:52:01 by obelkhad          #+#    #+#             */
-/*   Updated: 2022/12/09 12:35:23 by obelkhad         ###   ########.fr       */
+/*   Updated: 2023/01/05 10:17:22 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,9 @@
 #include <memory>
 #include <iostream>
 #include <algorithm>
-// #include <type_traits>
+#include <exception>
 #include "../iterators/iterator.hpp"
+#include "../iterators/reverse_iterator.hpp"
 #include "../type_traits/type_traits.hpp"
 #include "../algorithm/algorithm.hpp"
 
@@ -39,8 +40,8 @@ namespace ft
 		typedef _Tp     	                                	value_type;
 		typedef	_Allocator										allocator_type;
 		typedef typename allocator_type::pointer            	pointer;
-		typedef typename allocator_type::reference		    	reference;
 		typedef typename allocator_type::const_pointer      	const_pointer;
+		typedef typename allocator_type::reference		    	reference;
 		typedef typename allocator_type::const_reference		const_reference;
 		typedef typename allocator_type::size_type          	size_type;
 		typedef typename allocator_type::difference_type    	difference_type;
@@ -81,7 +82,7 @@ namespace ft
 		}
 		
 		/* Fill constructor */
-		explicit vector (size_type __n, const value_type &__val = value_type(), const allocator_type& alloc = allocator_type())
+		explicit vector (size_type __n, const value_type &__val = value_type(), const allocator_type &alloc = allocator_type())
 		:	__begin_(nullptr), __end_(nullptr), __end_cap_(nullptr), __alloc(alloc)
 		{
 			// std::cout << "Fill container\n";
@@ -106,7 +107,7 @@ namespace ft
 		:	__begin_(nullptr), __end_(nullptr), __end_cap_(nullptr), __alloc(alloc)
 		{
 			for (; first != last; ++first)
-        		push_back(*first);
+        		push_back_no_recommend(*first);
 		}
 
 		/* Copy constructor */
@@ -133,7 +134,6 @@ namespace ft
 
 		vector &operator = (const vector &__x)
 		{
-			std::cout << "assign container\n";
 			if (this != &__x)
             	assign(__x.__begin_, __x.__end_);
        		return (*this);
@@ -152,32 +152,29 @@ namespace ft
 
 		//+--------------------------------------------------------------------+
 		//|    	              [ iterator / const_iterator ]                    |
-		//+--------------------------------------------------------------------+
-		iterator begin() const 
+		//+--------------------------------------------------------------------+		
+		iterator begin()  
 		{return iterator(__begin_);}
-		
-		iterator end() const
+
+		iterator end() 
 		{return iterator(__end_);}
-		
-		const_iterator cbegin() const
+
+		const_iterator begin() const
 		{return const_iterator(__begin_);}
-		
-		const_iterator cend() const
+
+		const_iterator end() const
 		{return const_iterator(__end_);}
-	
-		//+--------------------------------------------------------------------+
-		//|           [ reverse iterator / reverse const_iterator ]            |
-		//+--------------------------------------------------------------------+
-		reverse_iterator rbegin() const
+
+		reverse_iterator rbegin() 
 		{return reverse_iterator(__end_);}
-		
-		reverse_iterator rend() const
+	
+		reverse_iterator rend() 
 		{return reverse_iterator(__begin_);}
-		
-		const_reverse_iterator crbegin() const
+
+		const_reverse_iterator rbegin() const
 		{return const_reverse_iterator(__end_);}
-		
-		const_reverse_iterator crend() const
+
+		const_reverse_iterator rend() const
 		{return const_reverse_iterator(__begin_);}
 
 		//+--------------------------------------------------------------------+
@@ -281,7 +278,9 @@ namespace ft
 						const_pointer __pointer_ = &__val;
 						if (__p <= __pointer_ && __pointer_ < __end_)
 							__pointer_ += __old_n;
-						std::fill_n(__p, __n, *__pointer_);
+						pointer __p_h = __p;
+						while (__n--)
+							*__p_h++ = *__pointer_;
 					}
 				}
 				else
@@ -329,12 +328,15 @@ namespace ft
 		//------------------------------------------------------------ [ erase ]
 		iterator erase(iterator __position)
 		{
-			pointer __p = __begin_ + (__position - begin());
-			pointer __first = __p + 1;
-			pointer __last = __end_;
-			for (; __first != __last; ++__first, ++__p)
-				*__p = *__first;
-			__alloc.destroy(--__end_);
+			if (__position != end())
+			{
+				pointer __p = __begin_ + (__position - begin());
+				pointer __first = __p + 1;
+				pointer __last = __end_;
+				for (; __first != __last; ++__first, ++__p)
+					*__p = *__first;
+				__alloc.destroy(--__end_);
+			}
 			return __position;
 		}
 
@@ -353,6 +355,19 @@ namespace ft
 		}
 
 		//-------------------------------------------------------- [ puch_back ]
+	private:
+		void push_back_no_recommend(const_reference __x)
+		{
+			if (__end_ != __end_cap_)
+				__alloc.construct(__end_++, __x);
+			else
+			{
+				__split_buffer __v(size() + 1, size(), __alloc);
+				__v.vec.__alloc.construct(__v.vec.__end_++, __x);
+				__construct_backward_and_swap_(__v);
+			}
+		}
+	public:
 		void push_back(const_reference __x)
 		{
 			if (__end_ != __end_cap_)
@@ -373,11 +388,11 @@ namespace ft
 		}
 
 		//------------------------------------------------------------- [ swap ]
-		void swap (vector &x)
+		void swap (vector &__x)
 		{
-			std::swap(__begin_, x.__begin_);
-			std::swap(__end_, x.__end_);
-			std::swap(__end_cap_, x.__end_cap_);
+			std::swap(__begin_, __x.__begin_);
+			std::swap(__end_, __x.__end_);
+			std::swap(__end_cap_, __x.__end_cap_);
 		}
 
 		//----------------------------------------------------------- [ assing ]
@@ -418,8 +433,12 @@ namespace ft
 			typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type* = 0)
 		{
 			clear();
-			__split_buffer __v(__last - __first, 0, __alloc);
-			swap(__v.vec);
+			size_type __n = std::distance(__first, __last);
+			if (capacity() < __n)
+			{
+				__split_buffer __v(__n, 0, __alloc);
+				swap(__v.vec);
+			}
 			while (__first != __last)
 				__alloc.construct(__end_++, *__first++);
 		}
@@ -507,7 +526,7 @@ namespace ft
 			__split_buffer(size_type __cap, size_type __size, allocator_type &alloc) : vec(alloc)
 			{
 				pointer __new;
-				__new = __cap != 0 ? vec.__alloc.allocate(__cap) : nullptr;
+				__new = (__cap != 0) ? vec.__alloc.allocate(__cap) : nullptr;
 				vec.__begin_ = vec.__end_ = __new + __size;
 				vec.__end_cap_ = __new + __cap;
 			}
@@ -526,6 +545,7 @@ namespace ft
 		void __shift_right(pointer __pos, pointer __end_holder, pointer __p);
 		inline void move_backward(pointer _first, pointer _last, pointer _result);
 		inline iterator __make_iter(pointer __p);
+		inline const_iterator __make_iter(const_pointer __p) const;
 
 
 	};	// -------------------------------------------------   [ VECTOR ] ----//
@@ -547,7 +567,7 @@ namespace ft
 		/* Construct Backward */
 		__ptr = __p;
 		while (__ptr != __begin_)
-			__v.vec.__alloc.construct(--__v.vec.__begin_, *__ptr--);
+			__v.vec.__alloc.construct(--__v.vec.__begin_, *--__ptr);
 
 		/* Swap */
 		swap (__v.vec);
@@ -620,11 +640,11 @@ namespace ft
 	void vector<_Tp, _Allocator>::__shift_right(pointer __pos, pointer __end_holder, pointer __to)
     {
         pointer __old_end_ = __end_;
-        difference_type _n = __end_ - __to;
+        difference_type __n = __end_ - __to;
 
-        for (pointer __i = __pos + _n; __i < __end_holder; ++__i, ++__end_)
+        for (pointer __i = __pos + __n; __i < __end_holder; ++__i, ++__end_)
             __alloc.construct( __end_, *__i);
-        move_backward(__pos, __pos + _n, __old_end_);
+        move_backward(__pos, __pos + __n, __old_end_);
     }
 	
 	template <class _Tp, class _Allocator>
@@ -632,6 +652,12 @@ namespace ft
 	vector<_Tp, _Allocator>::__make_iter(pointer __p)
 	{
 		return iterator(__p);
+	}
+	template <class _Tp, class _Allocator>
+	inline typename vector<_Tp, _Allocator>::const_iterator
+	vector<_Tp, _Allocator>::__make_iter(const_pointer __p) const
+	{
+		return const_iterator(__p);
 	}
 
 
